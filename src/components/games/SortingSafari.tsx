@@ -14,6 +14,7 @@ interface FallingItem {
   speed: number;
   sorted: boolean;
   wrong: boolean;
+  fact: string;
 }
 
 type BinType = 'organic' | 'paper' | 'plastic' | 'general';
