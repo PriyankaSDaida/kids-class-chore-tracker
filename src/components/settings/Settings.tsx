@@ -144,6 +144,54 @@ const Settings: React.FC = () => {
             id="settings-animations"/>
         </div>
 
+        {/* Background ambient world */}
+        <div className="settings-row">
+          <div>
+            <div className="settings-label">🌍 Ambient world background</div>
+            <div className="settings-desc">Clouds, stars, animals, and tappable collectibles behind the app</div>
+          </div>
+          <Toggle
+            checked={choreSettings.backgroundAnimations ?? true}
+            onChange={(v) => updateChoreSettings({ backgroundAnimations:v })}
+            id="settings-bg-anim"/>
+        </div>
+
+        {/* Celebration sounds */}
+        <div className="settings-row">
+          <div>
+            <div className="settings-label">🎵 Celebration sounds</div>
+            <div className="settings-desc">Fanfare when earning ❤️, ⭐, and 🎁 milestones</div>
+          </div>
+          <Toggle
+            checked={choreSettings.soundCelebrations ?? true}
+            onChange={(v) => updateChoreSettings({ soundCelebrations:v })}
+            id="settings-snd-celebrate"/>
+        </div>
+
+        {/* Game correct answer sounds */}
+        <div className="settings-row">
+          <div>
+            <div className="settings-label">✅ Correct answer sounds</div>
+            <div className="settings-desc">Sound effect when getting a right answer in games</div>
+          </div>
+          <Toggle
+            checked={choreSettings.soundCorrectAnswer ?? true}
+            onChange={(v) => updateChoreSettings({ soundCorrectAnswer:v })}
+            id="settings-snd-correct"/>
+        </div>
+
+        {/* Game wrong answer sounds */}
+        <div className="settings-row">
+          <div>
+            <div className="settings-label">❌ Wrong answer sounds</div>
+            <div className="settings-desc">Sound effect when getting a wrong answer in games</div>
+          </div>
+          <Toggle
+            checked={choreSettings.soundWrongAnswer ?? true}
+            onChange={(v) => updateChoreSettings({ soundWrongAnswer:v })}
+            id="settings-snd-wrong"/>
+        </div>
+
         {/* Points per heart */}
         <div className="settings-row">
           <div>
@@ -281,10 +329,10 @@ const Settings: React.FC = () => {
       <div className="settings-group">
         <div className="settings-row">
           <div>
-            <div className="settings-label">🦁 Class Quest</div>
-            <div className="settings-desc">Version 1.1 · Class Tracker + Chore Rewards · React + Zustand + Vite</div>
+            <div className="settings-label">⚔️ Class Quest</div>
+            <div className="settings-desc">Version 2.0 · Class Tracker + Quest Board + Mini-Games · React + Zustand + Vite</div>
           </div>
-          <span style={{ fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', background:'var(--bg-tertiary)', padding:'4px 10px', borderRadius:999 }}>v1.1</span>
+          <span style={{ fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', background:'var(--bg-tertiary)', padding:'4px 10px', borderRadius:999 }}>v2.0</span>
         </div>
         <div className="settings-row">
           <div>

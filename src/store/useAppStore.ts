@@ -86,7 +86,7 @@ interface AppState {
   clearHeartCelebration: () => void;
   clearStarCelebration:  () => void;
   snoozeGift:            () => void;
-  checkPendingGift:      () => void;  // call on mount to restore if snooze expired
+  checkPendingGift:      () => void;
 
   // ── Children ──
   addChild:    (c: Child) => void;
@@ -124,6 +124,10 @@ interface AppState {
   resetTodayChores:   (childId: string, date: string) => void;
   claimGift:          (childId: string, giftNote: string) => void;
   updateChoreSettings:(u: Partial<ChoreSettings>) => void;
+
+  // ── Games ──
+  addToWordCollection: (childId: string, word: string) => void;
+  awardXP:             (childId: string, xp: number) => void;
 
   // ── Filters ──
   setFilter:   (u: Partial<FilterState>) => void;
@@ -168,8 +172,8 @@ export const useAppStore = create<AppState>()(
 
       checkPendingGift: () => {
         const { rewardMilestones, pendingGiftChildId, giftSnoozedUntil } = get();
-        if (pendingGiftChildId) return; // already showing
-        if (giftSnoozedUntil && new Date(giftSnoozedUntil) > new Date()) return; // still snoozed
+        if (pendingGiftChildId) return;
+        if (giftSnoozedUntil && new Date(giftSnoozedUntil) > new Date()) return;
         const unclaimedGift = rewardMilestones.find((m) => m.type === 'gift' && !m.isClaimed);
         if (unclaimedGift) set({ pendingGiftChildId: unclaimedGift.childId, giftSnoozedUntil: null });
       },
@@ -283,7 +287,7 @@ export const useAppStore = create<AppState>()(
         choreCompletions: s.choreCompletions.filter((cc) => cc.choreId !== id),
       })),
 
-      // ── Complete a chore — the Points→Hearts→Stars→Gift chain ──────────────
+      // ── Complete a chore — Points→Hearts→Stars→Gift chain + game token ──────
       completeChore: (choreId, childId, date) => {
         const now = new Date().toISOString();
         set((s) => {
@@ -315,13 +319,12 @@ export const useAppStore = create<AppState>()(
           let pendingGiftChildId = s.pendingGiftChildId;
           const milestones: RewardMilestone[] = [];
 
-          // ── Chain check (only when total >= threshold) ──
           const mkMilestone = (type: RewardMilestoneType): RewardMilestone => ({
             id:crypto.randomUUID(), childId, type, date,
             giftNote:'', isClaimed:false, claimedAt:'',
           });
 
-          let loops = 0; // guard against edge case infinite loop
+          let loops = 0;
           while (newPoints >= pointsPerHeart && loops < 20) {
             loops++;
             newPoints -= pointsPerHeart;
@@ -345,20 +348,28 @@ export const useAppStore = create<AppState>()(
             }
           }
 
+          // ── Award game token every 5 completions today ──
+          const newCompletions = [...s.choreCompletions, completion];
+          const doneToday = newCompletions.filter(
+            (cc) => cc.childId === childId && cc.date === date,
+          ).length;
+          const tokenBonus = doneToday % 5 === 0 ? 1 : 0;
+
           const updatedChild: Child = {
             ...child,
             points:newPoints, hearts:newHearts, stars:newStars,
             lifetimeHearts:newLifeHearts, lifetimeStars:newLifeStars,
+            gameTokens: (child.gameTokens ?? 0) + tokenBonus,
           };
 
           const notif: AppNotification = {
             id:crypto.randomUUID(), type:'chore', read:false, createdAt:now,
             title:`${chore.points > 0 ? '🌟' : '⚠️'} Chore ${chore.points > 0 ? 'completed' : 'recorded'}`,
-            message:`${child.name}: ${chore.name} (${chore.points > 0 ? '+' : ''}${chore.points} pts)`,
+            message:`${child.name}: ${chore.name} (${chore.points > 0 ? '+' : ''}${chore.points} pts)${tokenBonus ? ' · 🎮 +1 game token!' : ''}`,
           };
 
           return {
-            choreCompletions: [...s.choreCompletions, completion],
+            choreCompletions: newCompletions,
             rewardMilestones: [...s.rewardMilestones, ...milestones],
             children: s.children.map((c) => c.id === childId ? updatedChild : c),
             newHeartChildId,
@@ -369,7 +380,7 @@ export const useAppStore = create<AppState>()(
         });
       },
 
-      // ── Undo a chore completion (reverses points, hearts/stars stay permanent) ──
+      // ── Undo a chore completion ──
       uncompleteChore: (choreId, childId, date) => {
         set((s) => {
           const completion = s.choreCompletions.find(
@@ -414,19 +425,40 @@ export const useAppStore = create<AppState>()(
       updateChoreSettings: (u) =>
         set((s) => ({ choreSettings: { ...s.choreSettings, ...u } })),
 
+      // ── Games ──
+      addToWordCollection: (childId, word) =>
+        set((s) => ({
+          children: s.children.map((c) =>
+            c.id === childId && !(c.wordCollection ?? []).includes(word)
+              ? { ...c, wordCollection: [...(c.wordCollection ?? []), word] }
+              : c,
+          ),
+        })),
+
+      awardXP: (childId, xpGain) =>
+        set((s) => ({
+          children: s.children.map((c) => {
+            if (c.id !== childId) return c;
+            const newXP    = c.xp + xpGain;
+            const newLevel = getLevel(newXP);
+            return { ...c, xp: newXP, level: newLevel };
+          }),
+        })),
+
       // ── Filters ──
       setFilter:   (u) => set((s) => ({ filter: { ...s.filter, ...u } })),
       resetFilter: ()  => set({ filter: defaultFilter }),
     }),
     {
       name: 'kids-class-tracker-store',
-      version: 4,
+      version: 5,
       migrate: (raw: unknown, version: number) => {
         const state = raw as Record<string, unknown>;
         if (version < 2) {
           const children = ((state.children as Array<Record<string,unknown>>) ?? []).map((c) => ({
             xp:0, level:1, badges:[], favoriteEmoji:'⭐', moodLog:[],
-            points:0, hearts:0, stars:0, lifetimeHearts:0, lifetimeStars:0, ...c,
+            points:0, hearts:0, stars:0, lifetimeHearts:0, lifetimeStars:0,
+            gameTokens:0, wordCollection:[], ...c,
           }));
           return { ...state, children, soundEnabled:true, newlyEarnedBadge:null, activeProfileChildId:null };
         }
@@ -435,7 +467,8 @@ export const useAppStore = create<AppState>()(
         }
         if (version < 4) {
           const children = ((state.children as Array<Record<string,unknown>>) ?? []).map((c) => ({
-            points:0, hearts:0, stars:0, lifetimeHearts:0, lifetimeStars:0, ...c,
+            points:0, hearts:0, stars:0, lifetimeHearts:0, lifetimeStars:0,
+            gameTokens:0, wordCollection:[], ...c,
           }));
           return {
             ...state, children,
@@ -444,6 +477,17 @@ export const useAppStore = create<AppState>()(
             newHeartChildId:null, newStarChildId:null,
             pendingGiftChildId:null, giftSnoozedUntil:null,
           };
+        }
+        if (version < 5) {
+          // Add gameTokens + wordCollection + new choreSettings fields
+          const children = ((state.children as Array<Record<string,unknown>>) ?? []).map((c) => ({
+            gameTokens:0, wordCollection:[], ...c,
+          }));
+          const choreSettings = {
+            ...DEFAULT_CHORE_SETTINGS,
+            ...((state.choreSettings as Record<string,unknown>) ?? {}),
+          };
+          return { ...state, children, choreSettings };
         }
         return state as unknown as AppState;
       },

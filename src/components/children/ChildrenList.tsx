@@ -39,6 +39,7 @@ const InlineChildForm: React.FC<{ existing?: Child; onClose: () => void }> = ({ 
         favoriteEmoji: favEmoji,
         xp: 0, level: 1, badges: [], moodLog: [],
         points: 0, hearts: 0, stars: 0, lifetimeHearts: 0, lifetimeStars: 0,
+        gameTokens: 0, wordCollection: [],
         createdAt: new Date().toISOString(),
       };
       addChild(child);

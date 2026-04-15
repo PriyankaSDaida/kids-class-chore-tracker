@@ -2,20 +2,21 @@
 import React from 'react';
 import {
   Home, Calendar, List, Users, DollarSign,
-  Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Plus, CheckSquare,
+  Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Plus, Swords, Gamepad2,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { getLevel } from '../../store/types';
 import type { Screen } from '../../store/types';
 
-const NAV_ITEMS: { id: Screen; icon: React.ElementType; label: string }[] = [
-  { id: 'dashboard', icon: Home,          label: 'Dashboard'  },
-  { id: 'calendar',  icon: Calendar,      label: 'Calendar'   },
-  { id: 'classes',   icon: List,          label: 'Classes'    },
-  { id: 'children',  icon: Users,         label: 'Kids'       },
-  { id: 'chores',    icon: CheckSquare,   label: 'Chores'     },
-  { id: 'costs',     icon: DollarSign,    label: 'Costs'      },
-  { id: 'settings',  icon: SettingsIcon,  label: 'Settings'   },
+const NAV_ITEMS: { id: Screen; icon: React.ElementType; label: string; badge?: string }[] = [
+  { id: 'dashboard', icon: Home,          label: 'Dashboard'    },
+  { id: 'calendar',  icon: Calendar,      label: 'Calendar'     },
+  { id: 'classes',   icon: List,          label: 'Classes'      },
+  { id: 'children',  icon: Users,         label: 'Kids'         },
+  { id: 'chores',    icon: Swords,        label: 'Quest Board'  },
+  { id: 'games',     icon: Gamepad2,      label: 'Games'        },
+  { id: 'costs',     icon: DollarSign,    label: 'Costs'        },
+  { id: 'settings',  icon: SettingsIcon,  label: 'Settings'     },
 ];
 
 const Sidebar: React.FC = () => {
@@ -25,13 +26,17 @@ const Sidebar: React.FC = () => {
     theme, toggleTheme, soundEnabled, setSoundEnabled,
   } = useAppStore();
 
+  // Game token count for active child
+  const activeChild = children.find((c) => c.id === activeChildFilter) || children[0];
+  const tokens = activeChild?.gameTokens ?? 0;
+
   const handleNav = (id: Screen) => setScreen(id);
 
   return (
     <aside className="sidebar" role="navigation" aria-label="Main navigation">
       {/* ── Logo ── */}
       <div className="sidebar-logo">
-        <span className="sidebar-logo-icon">🦁</span>
+        <span className="sidebar-logo-icon">⚔️</span>
         <span className="sidebar-label">Class Quest</span>
       </div>
 
@@ -39,7 +44,6 @@ const Sidebar: React.FC = () => {
       <div className="sidebar-section">
         <div className="sidebar-section-label">Kids</div>
 
-        {/* All kids filter */}
         <button
           className={`sidebar-child-btn ${!activeChildFilter ? 'active' : ''}`}
           onClick={() => setActiveChildFilter('')}
@@ -54,7 +58,6 @@ const Sidebar: React.FC = () => {
           <span className="sidebar-label">All Kids</span>
         </button>
 
-        {/* Per-child buttons */}
         {children.map((child) => (
           <button
             key={child.id}
@@ -76,12 +79,12 @@ const Sidebar: React.FC = () => {
               </div>
               <div style={{ fontSize:'0.6rem', color:'var(--text-muted)', fontWeight:600 }}>
                 Lv.{getLevel(child.xp)} · {child.xp} XP
+                {(child.gameTokens ?? 0) > 0 && ` · 🎮 ${child.gameTokens}`}
               </div>
             </div>
           </button>
         ))}
 
-        {/* Add kid shortcut */}
         <button
           className="sidebar-child-btn"
           onClick={() => setScreen('children')}
@@ -99,7 +102,6 @@ const Sidebar: React.FC = () => {
         </button>
       </div>
 
-      {/* Divider */}
       <div style={{ height:'1px', background:'var(--border)', margin:'4px 0' }}/>
 
       {/* ── Navigation ── */}
@@ -109,6 +111,8 @@ const Sidebar: React.FC = () => {
           {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
             const isActive = activeScreen === id ||
               (id === 'children' && activeScreen === 'profile');
+            // Show token badge on Games nav item
+            const showBadge = id === 'games' && tokens > 0;
             return (
               <button
                 key={id}
@@ -116,16 +120,24 @@ const Sidebar: React.FC = () => {
                 onClick={() => handleNav(id)}
                 id={`sidebar-nav-${id}`}
                 aria-current={isActive ? 'page' : undefined}
+                style={{ position: 'relative' }}
               >
                 <Icon size={18} strokeWidth={isActive ? 2.5 : 1.8}/>
                 <span className="sidebar-label">{label}</span>
+                {showBadge && (
+                  <span style={{
+                    marginLeft: 'auto', background: '#7C3AED', color: '#fff',
+                    borderRadius: 999, padding: '1px 7px', fontSize: '0.6rem', fontWeight: 900,
+                  }}>
+                    {tokens}
+                  </span>
+                )}
               </button>
             );
           })}
         </nav>
       </div>
 
-      {/* Spacer */}
       <div style={{ flex:1 }}/>
 
       {/* ── Footer: sound + theme ── */}
@@ -148,7 +160,7 @@ const Sidebar: React.FC = () => {
         </button>
         <span className="sidebar-label" style={{
           fontSize:'0.6rem', color:'var(--text-muted)', marginLeft:'auto', fontWeight:600,
-        }}>v1.0</span>
+        }}>v2.0</span>
       </div>
     </aside>
   );

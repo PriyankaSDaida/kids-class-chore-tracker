@@ -1,4 +1,4 @@
-// ─── App Root — Class Quest with Chore Tracker ────────────────────────────────
+// ─── App Root — Class Quest with Chore Tracker + Games ────────────────────────
 import { useEffect, type ReactElement } from 'react';
 import { useAppStore } from './store/useAppStore';
 
@@ -13,6 +13,9 @@ import ChildProfile from './components/profile/ChildProfile';
 import Settings     from './components/settings/Settings';
 import ChoreBoard   from './components/chores/ChoreBoard';
 import { ToastProvider } from './components/ui/Toast';
+
+// ── Lazy-load Games section so it doesn't affect initial load ──
+import GamesSection from './components/games/GamesSection';
 
 import './styles/index.css';
 import './styles/animations.css';
@@ -44,6 +47,7 @@ function App() {
     profile:   <ChildProfile/>,
     settings:  <Settings/>,
     chores:    <ChoreBoard/>,
+    games:     <GamesSection/>,
   };
 
   return (

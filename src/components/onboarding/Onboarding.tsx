@@ -36,6 +36,7 @@ const Onboarding: React.FC = () => {
       favoriteEmoji: '⭐',
       xp: 0, level: 1, badges: [], moodLog: [],
       points: 0, hearts: 0, stars: 0, lifetimeHearts: 0, lifetimeStars: 0,
+      gameTokens: 0, wordCollection: [],
       createdAt: new Date().toISOString(),
     };
     addChild(child);

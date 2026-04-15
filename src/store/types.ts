@@ -1,11 +1,13 @@
-// ─── Core Types — Class Quest with Chore Tracker ──────────────────────────────
+// ─── Core Types — Class Quest with Chore Tracker + Games ──────────────────────
 
 export type Category = 'Sport' | 'Music' | 'Art' | 'Academic' | 'Dance' | 'Other';
 export type RecurringFrequency = 'one-time' | 'weekly' | 'biweekly' | 'monthly';
 export type ClassStatus = 'upcoming' | 'attended' | 'missed' | 'cancelled' | 'rescheduled';
 export type AttendanceStatus = 'attended' | 'missed' | 'cancelled';
 export type Theme = 'light' | 'dark';
-export type Screen = 'dashboard' | 'calendar' | 'classes' | 'children' | 'costs' | 'profile' | 'settings' | 'chores';
+export type Screen =
+  | 'dashboard' | 'calendar' | 'classes' | 'children'
+  | 'costs' | 'profile' | 'settings' | 'chores' | 'games';
 export type ReminderBefore = 'none' | '15min' | '30min' | '1hour' | '1day';
 export type ClassReaction = 'cant-wait' | 'not-feeling-it' | null;
 export type Mood = 1 | 2 | 3 | 4 | 5;
@@ -67,6 +69,14 @@ export const CHORE_ICONS = [
   '🧸','🎒','👟','🏅','🧡','🌈','🦋','🐣','🌺','🎪',
 ];
 
+// ─── Quest Card Rarity ─────────────────────────────────────────────────────────
+export type ChoreRarity = 'silver' | 'gold' | 'legendary';
+export const getChoreRarity = (lifetimeCompletions: number): ChoreRarity => {
+  if (lifetimeCompletions >= 25) return 'legendary';
+  if (lifetimeCompletions >= 10) return 'gold';
+  return 'silver';
+};
+
 export interface Chore {
   id:string;
   assignedChildId:string; // specific child ID or 'all'
@@ -103,12 +113,16 @@ export interface RewardMilestone {
 }
 
 export interface ChoreSettings {
-  kidsCanMarkChores:boolean;  // false = PIN required
-  parentPin:string;           // 4 digits or '' = no PIN
-  pointsPerHeart:number;      // default 25
-  heartsPerStar:number;       // default 5
-  starsPerGift:number;        // default 5
+  kidsCanMarkChores:boolean;   // false = PIN required
+  parentPin:string;            // 4 digits or '' = no PIN
+  pointsPerHeart:number;       // default 25
+  heartsPerStar:number;        // default 5
+  starsPerGift:number;         // default 5
   showAnimations:boolean;
+  backgroundAnimations:boolean; // ambient world on/off
+  soundCelebrations:boolean;    // heart/star/gift sounds
+  soundCorrectAnswer:boolean;   // game correct sounds
+  soundWrongAnswer:boolean;     // game wrong sounds
 }
 
 export const DEFAULT_CHORE_SETTINGS: ChoreSettings = {
@@ -118,6 +132,10 @@ export const DEFAULT_CHORE_SETTINGS: ChoreSettings = {
   heartsPerStar: 5,
   starsPerGift: 5,
   showAnimations: true,
+  backgroundAnimations: true,
+  soundCelebrations: true,
+  soundCorrectAnswer: true,
+  soundWrongAnswer: true,
 };
 
 // ─── Child ─────────────────────────────────────────────────────────────────────
@@ -133,6 +151,9 @@ export interface Child {
   stars:number;          // current stars toward next gift
   lifetimeHearts:number; // total hearts ever earned (permanent)
   lifetimeStars:number;  // total stars ever earned (permanent)
+  // Games
+  gameTokens:number;       // earned by completing chores (every 5 completions)
+  wordCollection:string[]; // words learned in Word Builder game
   createdAt:string;
 }
 
@@ -160,3 +181,13 @@ export interface FilterState {
   childId:string; category:Category|''; status:ClassStatus|'';
   searchQuery:string; dateFrom:string; dateTo:string;
 }
+
+// ─── Word lists for Word Builder game ─────────────────────────────────────────
+export const GAME_WORD_LISTS: Record<ChoreCategory, { easy: string[]; hard: string[] }> = {
+  Helping:       { easy:['mop','wipe','help','give'], hard:['assist','scrub','tidy','sweep'] },
+  Hygiene:       { easy:['soap','wash','rinse','dry'], hard:['brush','floss','clean','shower'] },
+  Homework:      { easy:['read','draw','math','book'], hard:['study','write','learn','think'] },
+  Behaviour:     { easy:['kind','calm','nice','try'], hard:['focus','smile','share','quiet'] },
+  Kindness:      { easy:['love','hug','care','give'], hard:['thank','share','cheer','greet'] },
+  Responsibility:{ easy:['tidy','safe','done','pack'], hard:['ready','check','alert','trust'] },
+};

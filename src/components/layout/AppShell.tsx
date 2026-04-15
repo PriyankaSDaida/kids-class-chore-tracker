@@ -7,6 +7,7 @@ import MobileHeader from './MobileHeader';
 import BottomNav from './BottomNav';
 import BadgeCelebration from '../gamification/BadgeCelebration';
 import ChoreEffects from '../chores/ChoreEffects';
+import AmbientWorld from '../ui/AmbientWorld';
 
 interface Props { children: ReactNode; }
 
@@ -19,29 +20,31 @@ const AppShell: React.FC<Props> = ({ children }) => {
 
   return (
     <div className="app-shell">
+      {/* Ambient world layer — behind everything (z-index 0) */}
+      <AmbientWorld/>
+
       {/* Fixed left sidebar — hidden on mobile via CSS */}
-      <Sidebar />
+      <Sidebar/>
 
       {/* Right main area */}
       <div className="main-area">
         {/* Mobile-only header — CSS hides on tablet+ */}
-        <MobileHeader />
+        <MobileHeader/>
         {/* Desktop/tablet top bar — CSS hides on mobile */}
-        <TopBar />
+        <TopBar/>
         {/* Scrollable screen content */}
         <div className="screen-content">
           {children}
         </div>
         {/* Mobile-only bottom tabs — CSS hides on tablet+ */}
-        <BottomNav />
+        <BottomNav/>
       </div>
 
       {/* Global celebration overlays (appear above everything) */}
-      <BadgeCelebration />
-      <ChoreEffects />
+      <BadgeCelebration/>
+      <ChoreEffects/>
     </div>
   );
 };
 
 export default AppShell;
-
