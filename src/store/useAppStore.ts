@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   Child, ClassSession, AttendanceRecord, Theme, Screen,
   FilterState, ClassStatus, BadgeId, MoodEntry, ClassReaction,
@@ -49,6 +49,7 @@ interface AppState {
   soundEnabled: boolean;
   sidebarCollapsed: boolean;
   globalSearch: string;
+  _hasHydrated: boolean;
 
   // ── Class gamification celebration triggers ──
   newlyEarnedBadge: BadgeId | null;
@@ -57,7 +58,7 @@ interface AppState {
   newHeartChildId: string | null;
   newStarChildId:  string | null;
   pendingGiftChildId: string | null;
-  giftSnoozedUntil:   string | null;  // ISO timestamp
+  giftSnoozedUntil:   string | null;
 
   // ── Data ──
   children: Child[];
@@ -74,6 +75,7 @@ interface AppState {
   activeChildFilter: string;
 
   // ── UI Actions ──
+  setHasHydrated:        (v: boolean) => void;
   toggleTheme:           () => void;
   setScreen:             (s: Screen) => void;
   setActiveProfile:      (id: string | null) => void;
@@ -94,16 +96,16 @@ interface AppState {
   deleteChild: (id: string) => void;
 
   // ── Classes ──
-  addClass:             (c: ClassSession) => void;
-  addClasses:           (cs: ClassSession[]) => void;
-  updateClass:          (id: string, u: Partial<ClassSession>) => void;
+  addClass:               (c: ClassSession) => void;
+  addClasses:             (cs: ClassSession[]) => void;
+  updateClass:            (id: string, u: Partial<ClassSession>) => void;
   updateRecurringClasses: (groupId: string, u: Partial<ClassSession>, fromDate: string) => void;
-  deleteClass:          (id: string) => void;
-  markAttended:         (id: string) => void;
-  markMissed:           (id: string) => void;
-  cancelClass:          (id: string) => void;
-  rescheduleClass:      (id: string, d: string, t: string, r: string) => void;
-  setClassReaction:     (id: string, r: ClassReaction) => void;
+  deleteClass:            (id: string) => void;
+  markAttended:           (id: string) => void;
+  markMissed:             (id: string) => void;
+  cancelClass:            (id: string) => void;
+  rescheduleClass:        (id: string, d: string, t: string, r: string) => void;
+  setClassReaction:       (id: string, r: ClassReaction) => void;
 
   // ── Attendance & mood ──
   addAttendanceRecord:  (r: AttendanceRecord) => void;
@@ -116,14 +118,14 @@ interface AppState {
   clearNotifications:       () => void;
 
   // ── Chores ──
-  addChore:           (c: Chore) => void;
-  updateChore:        (id: string, u: Partial<Chore>) => void;
-  deleteChore:        (id: string) => void;
-  completeChore:      (choreId: string, childId: string, date: string) => void;
-  uncompleteChore:    (choreId: string, childId: string, date: string) => void;
-  resetTodayChores:   (childId: string, date: string) => void;
-  claimGift:          (childId: string, giftNote: string) => void;
-  updateChoreSettings:(u: Partial<ChoreSettings>) => void;
+  addChore:            (c: Chore) => void;
+  updateChore:         (id: string, u: Partial<Chore>) => void;
+  deleteChore:         (id: string) => void;
+  completeChore:       (choreId: string, childId: string, date: string) => void;
+  uncompleteChore:     (choreId: string, childId: string, date: string) => void;
+  resetTodayChores:    (childId: string, date: string) => void;
+  claimGift:           (childId: string, giftNote: string) => void;
+  updateChoreSettings: (u: Partial<ChoreSettings>) => void;
 
   // ── Games ──
   addToWordCollection: (childId: string, word: string) => void;
@@ -142,9 +144,10 @@ const defaultFilter: FilterState = {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      // ── Initial state ──
       theme:'light', activeScreen:'dashboard', activeProfileChildId:null,
       onboardingComplete:false, soundEnabled:true, sidebarCollapsed:false,
-      globalSearch:'',
+      globalSearch:'', _hasHydrated: false,
       newlyEarnedBadge:null, newHeartChildId:null, newStarChildId:null,
       pendingGiftChildId:null, giftSnoozedUntil:null,
       children:[], classes:[], attendanceRecords:[],
@@ -153,6 +156,7 @@ export const useAppStore = create<AppState>()(
       filter:defaultFilter, activeChildFilter:'',
 
       // ── UI ──
+      setHasHydrated:       (v) => set({ _hasHydrated: v }),
       toggleTheme:          () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
       setScreen:            (screen) => set({ activeScreen: screen }),
       setActiveProfile:     (id) => set({ activeProfileChildId: id, activeScreen: id ? 'profile' : 'children' }),
@@ -167,7 +171,7 @@ export const useAppStore = create<AppState>()(
 
       snoozeGift: () => set({
         pendingGiftChildId: null,
-        giftSnoozedUntil: new Date(Date.now() + 3_600_000).toISOString(), // 1 hour
+        giftSnoozedUntil: new Date(Date.now() + 3_600_000).toISOString(),
       }),
 
       checkPendingGift: () => {
@@ -287,7 +291,7 @@ export const useAppStore = create<AppState>()(
         choreCompletions: s.choreCompletions.filter((cc) => cc.choreId !== id),
       })),
 
-      // ── Complete a chore — Points→Hearts→Stars→Gift chain + game token ──────
+      // ── Complete a chore ──
       completeChore: (choreId, childId, date) => {
         const now = new Date().toISOString();
         set((s) => {
@@ -296,7 +300,6 @@ export const useAppStore = create<AppState>()(
           const child = s.children.find((c) => c.id === childId);
           if (!child) return s;
 
-          // Already done today?
           const alreadyDone = s.choreCompletions.some(
             (cc) => cc.choreId === choreId && cc.childId === childId && cc.date === date,
           );
@@ -313,7 +316,6 @@ export const useAppStore = create<AppState>()(
           let newStars       = child.stars;
           let newLifeHearts  = child.lifetimeHearts;
           let newLifeStars   = child.lifetimeStars;
-
           let newHeartChildId    = s.newHeartChildId;
           let newStarChildId     = s.newStarChildId;
           let pendingGiftChildId = s.pendingGiftChildId;
@@ -332,14 +334,12 @@ export const useAppStore = create<AppState>()(
             newLifeHearts++;
             newHeartChildId = childId;
             milestones.push(mkMilestone('heart'));
-
             if (newHearts >= heartsPerStar) {
               newHearts -= heartsPerStar;
               newStars++;
               newLifeStars++;
               newStarChildId = childId;
               milestones.push(mkMilestone('star'));
-
               if (newStars >= starsPerGift) {
                 newStars -= starsPerGift;
                 pendingGiftChildId = childId;
@@ -348,7 +348,6 @@ export const useAppStore = create<AppState>()(
             }
           }
 
-          // ── Award game token every 5 completions today ──
           const newCompletions = [...s.choreCompletions, completion];
           const doneToday = newCompletions.filter(
             (cc) => cc.childId === childId && cc.date === date,
@@ -380,7 +379,6 @@ export const useAppStore = create<AppState>()(
         });
       },
 
-      // ── Undo a chore completion ──
       uncompleteChore: (choreId, childId, date) => {
         set((s) => {
           const completion = s.choreCompletions.find(
@@ -405,7 +403,6 @@ export const useAppStore = create<AppState>()(
           ),
         })),
 
-      // ── Claim a gift milestone ──
       claimGift: (childId, giftNote) => {
         set((s) => {
           const pending = s.rewardMilestones
@@ -449,46 +446,86 @@ export const useAppStore = create<AppState>()(
       setFilter:   (u) => set((s) => ({ filter: { ...s.filter, ...u } })),
       resetFilter: ()  => set({ filter: defaultFilter }),
     }),
+
+    // ─── Persist config ────────────────────────────────────────────────────────
     {
       name: 'kids-class-tracker-store',
-      version: 5,
+
+      // createJSONStorage is required for Zustand v5 — without it persist
+      // silently fails to write in many environments including Vercel deploys.
+      storage: createJSONStorage(() => localStorage),
+
+      version: 6,
+
+      // _hasHydrated is runtime-only — never save it to localStorage
+      partialize: (state) => {
+        const { _hasHydrated, ...rest } = state;
+        return rest;
+      },
+
+      // onRehydrateStorage fires after localStorage is read and merged into state.
+      // Setting _hasHydrated lets App.tsx wait before rendering, preventing a
+      // flash of empty state on page load.
+      onRehydrateStorage: () => (state) => {
+        if (state) state.setHasHydrated(true);
+      },
+
+      // Accumulating migrations — every version block updates state in place.
+      // A single return at the end means ALL pending migrations always run.
       migrate: (raw: unknown, version: number) => {
-        const state = raw as Record<string, unknown>;
+        let state = { ...(raw as Record<string, unknown>) };
+
         if (version < 2) {
           const children = ((state.children as Array<Record<string,unknown>>) ?? []).map((c) => ({
             xp:0, level:1, badges:[], favoriteEmoji:'⭐', moodLog:[],
             points:0, hearts:0, stars:0, lifetimeHearts:0, lifetimeStars:0,
             gameTokens:0, wordCollection:[], ...c,
           }));
-          return { ...state, children, soundEnabled:true, newlyEarnedBadge:null, activeProfileChildId:null };
+          state = { ...state, children, soundEnabled:true, newlyEarnedBadge:null, activeProfileChildId:null };
         }
+
         if (version < 3) {
-          return { ...state, notifications:[], globalSearch:'', sidebarCollapsed:false };
+          state = {
+            ...state,
+            notifications: state.notifications ?? [],
+            globalSearch: state.globalSearch ?? '',
+            sidebarCollapsed: state.sidebarCollapsed ?? false,
+          };
         }
+
         if (version < 4) {
           const children = ((state.children as Array<Record<string,unknown>>) ?? []).map((c) => ({
             points:0, hearts:0, stars:0, lifetimeHearts:0, lifetimeStars:0,
             gameTokens:0, wordCollection:[], ...c,
           }));
-          return {
-            ...state, children,
-            chores:[], choreCompletions:[], rewardMilestones:[],
-            choreSettings: DEFAULT_CHORE_SETTINGS,
-            newHeartChildId:null, newStarChildId:null,
-            pendingGiftChildId:null, giftSnoozedUntil:null,
+          state = {
+            ...state,
+            children,
+            chores: state.chores ?? [],
+            choreCompletions: state.choreCompletions ?? [],
+            rewardMilestones: state.rewardMilestones ?? [],
+            choreSettings: { ...DEFAULT_CHORE_SETTINGS, ...((state.choreSettings as Record<string,unknown>) ?? {}) },
+            newHeartChildId: null,
+            newStarChildId: null,
+            pendingGiftChildId: null,
+            giftSnoozedUntil: null,
           };
         }
+
         if (version < 5) {
-          // Add gameTokens + wordCollection + new choreSettings fields
           const children = ((state.children as Array<Record<string,unknown>>) ?? []).map((c) => ({
             gameTokens:0, wordCollection:[], ...c,
           }));
-          const choreSettings = {
-            ...DEFAULT_CHORE_SETTINGS,
-            ...((state.choreSettings as Record<string,unknown>) ?? {}),
+          state = {
+            ...state,
+            children,
+            choreSettings: { ...DEFAULT_CHORE_SETTINGS, ...((state.choreSettings as Record<string,unknown>) ?? {}) },
           };
-          return { ...state, children, choreSettings };
         }
+
+        // version 6: adds _hasHydrated (runtime only, not stored)
+        // no data migration needed — partialize handles exclusion
+
         return state as unknown as AppState;
       },
     },

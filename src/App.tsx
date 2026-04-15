@@ -1,4 +1,4 @@
-// ─── App Root — Class Quest with Chore Tracker + Games ────────────────────────
+// ─── App Root — Class Quest ────────────────────────────────────────────────────
 import { useEffect, type ReactElement } from 'react';
 import { useAppStore } from './store/useAppStore';
 
@@ -13,8 +13,6 @@ import ChildProfile from './components/profile/ChildProfile';
 import Settings     from './components/settings/Settings';
 import ChoreBoard   from './components/chores/ChoreBoard';
 import { ToastProvider } from './components/ui/Toast';
-
-// ── Lazy-load Games section so it doesn't affect initial load ──
 import GamesSection from './components/games/GamesSection';
 
 import './styles/index.css';
@@ -22,11 +20,30 @@ import './styles/animations.css';
 import './styles/components.css';
 
 function App() {
-  const { onboardingComplete, activeScreen, theme } = useAppStore();
+  const { onboardingComplete, activeScreen, theme, _hasHydrated } = useAppStore();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  // Wait for Zustand persist to rehydrate from localStorage before rendering.
+  // Without this guard, the app briefly renders with empty state (no classes,
+  // no children) and can overwrite good data with blank initial values.
+  if (!_hasHydrated) {
+    return (
+      <div data-theme={theme} style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-primary)',
+        fontFamily: 'Nunito, sans-serif',
+        fontSize: '1.5rem',
+      }}>
+        🦁
+      </div>
+    );
+  }
 
   if (!onboardingComplete) {
     return (
