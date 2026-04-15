@@ -144,6 +144,12 @@ npm run preview      # Preview the production build locally
 
 ## 🏗 Architecture
 
+<div align="center">
+
+![Class Quest Architecture Diagram](public/architecture.png)
+
+</div>
+
 ```
 src/
 ├── components/
