@@ -94,7 +94,7 @@ const ChoreForm: React.FC<Props> = ({ chore, onClose }) => {
                   {CHORE_ICONS.map((em) => (
                     <button key={em} type="button"
                       style={{
-                        fontSize:'1.3rem', padding:4, border:'none', background:'none',
+                        fontSize:'1.3rem', padding:4, border:'none',
                         cursor:'pointer', borderRadius:'var(--r-sm)',
                         background: icon === em ? 'var(--accent-light)' : 'transparent',
                       }}

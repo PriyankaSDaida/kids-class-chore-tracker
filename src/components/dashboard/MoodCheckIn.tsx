@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { MOOD_EMOJIS, MOOD_LABELS } from '../../store/types';
 import type { ClassSession, Mood } from '../../store/types';
-import { useAppStore } from '../../store/useAppStore';
+
 
 interface MoodCheckInProps {
   cls: ClassSession;

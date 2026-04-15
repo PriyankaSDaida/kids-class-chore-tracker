@@ -33,6 +33,9 @@ const Onboarding: React.FC = () => {
       age: parseInt(childAge) || 0,
       color: childColor,
       avatarEmoji: childEmoji,
+      favoriteEmoji: '⭐',
+      xp: 0, level: 1, badges: [], moodLog: [],
+      points: 0, hearts: 0, stars: 0, lifetimeHearts: 0, lifetimeStars: 0,
       createdAt: new Date().toISOString(),
     };
     addChild(child);
@@ -60,6 +63,7 @@ const Onboarding: React.FC = () => {
       isRescheduled: false,
       rescheduleReason: '',
       originalDate: null,
+      reaction: null,
       createdAt: new Date().toISOString(),
     };
     addClass(cls);

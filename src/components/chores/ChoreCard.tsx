@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Pencil, Trash2, RotateCcw } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
-import { todayStr } from '../../utils/dateUtils';
+
 import { CHORE_CAT_CONFIG } from '../../store/types';
 import { useSound } from '../../hooks/useSound';
 import FloatingPoint from './FloatingPoint';

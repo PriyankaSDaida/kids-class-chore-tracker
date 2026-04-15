@@ -1,6 +1,6 @@
 // ─── Header — Class Quest Branding ────────────────────────────────────────────
 import React from 'react';
-import { Moon, Sun, Bell, Volume2, VolumeX } from 'lucide-react';
+import { Moon, Sun, Volume2, VolumeX } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
 const Header: React.FC = () => {

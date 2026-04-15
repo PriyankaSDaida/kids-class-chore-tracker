@@ -42,6 +42,7 @@ const ClassForm: React.FC<ClassFormProps> = ({ existing, defaultChildId, onClose
     notes:              existing?.notes     || '',
     monthlyCost:        existing?.monthlyCost ?? 0,
     remindBefore:       existing?.remindBefore || 'none',
+    reaction:           existing?.reaction ?? null,
   });
 
   const set = (k: string, v: string | number) =>

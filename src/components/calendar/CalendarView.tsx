@@ -8,9 +8,9 @@ import {
 import { useAppStore } from '../../store/useAppStore';
 import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { formatDate } from '../../utils/dateUtils';
-import { StatusBadge } from '../ui/Badge';
 import ClassCard from '../dashboard/ClassCard';
 import ClassForm from '../classes/ClassForm';
+import type { ClassSession } from '../../store/types';
 
 const CAT_COLORS: Record<string, string> = {
   Sport:'#3B82F6', Music:'#A855F7', Art:'#F97316',
@@ -21,7 +21,7 @@ const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ─── Shared Day Detail panel content ──────────────────────────────────────────
 const DayDetailContent: React.FC<{
   selectedDate: string;
-  dayClasses: ReturnType<typeof useAppStore>['classes'];
+  dayClasses: ClassSession[];
   onAdd: () => void;
 }> = ({ selectedDate, dayClasses, onAdd }) => (
   <>
@@ -51,7 +51,7 @@ const DayDetailContent: React.FC<{
       </div>
     ) : (
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-        {dayClasses.map((cls) => <ClassCard key={cls.id} cls={cls}/>)}
+        {dayClasses.map((cls: ClassSession) => <ClassCard key={cls.id} cls={cls}/>)}
       </div>
     )}
   </>

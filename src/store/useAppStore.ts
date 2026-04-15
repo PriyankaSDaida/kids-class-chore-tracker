@@ -6,7 +6,7 @@ import type {
   AppNotification, Chore, ChoreCompletion, RewardMilestone,
   ChoreSettings, RewardMilestoneType,
 } from './types';
-import { XP_PER_ATTEND, XP_PER_LEVEL, getLevel, DEFAULT_CHORE_SETTINGS } from './types';
+import { XP_PER_ATTEND, getLevel, DEFAULT_CHORE_SETTINGS } from './types';
 
 // ─── Badge check (class XP) ────────────────────────────────────────────────────
 const checkNewBadges = (
@@ -221,7 +221,7 @@ export const useAppStore = create<AppState>()(
             id:crypto.randomUUID(), type:'attended', read:false, createdAt:now,
             title:'Class completed! ✅', message:`${child.name} attended ${cls.name} · +${XP_PER_ATTEND} XP`,
           };
-          const badgeNotifs: AppNotification[] = newBadges.map((b) => ({
+          const badgeNotifs: AppNotification[] = newBadges.map((_b) => ({
             id:crypto.randomUUID(), type:'badge' as const, read:false, createdAt:now,
             title:'New badge unlocked! 🏆', message:`${child.name} earned a new badge!`,
           }));
@@ -445,7 +445,7 @@ export const useAppStore = create<AppState>()(
             pendingGiftChildId:null, giftSnoozedUntil:null,
           };
         }
-        return state as AppState;
+        return state as unknown as AppState;
       },
     },
   ),

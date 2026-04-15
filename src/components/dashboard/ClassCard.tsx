@@ -34,7 +34,6 @@ const ClassCard: React.FC<ClassCardProps> = ({ cls }) => {
   const [showConfetti, setShowConfetti]         = useState(false);
   const [bouncing, setBouncing]                 = useState(false);
 
-  const isDone   = cls.status === 'attended' || cls.status === 'cancelled';
   const isActive = cls.status === 'upcoming' || cls.status === 'rescheduled';
 
   const triggerBounce = () => {

@@ -27,7 +27,6 @@ const WeekStrip: React.FC = () => {
             (activeChildFilter ? c.childId === activeChildFilter : true)
           );
           const attended    = dayClasses.filter((c) => c.status === 'attended').length;
-          const upcoming    = dayClasses.filter((c) => c.status === 'upcoming' || c.status === 'rescheduled').length;
 
           return (
             <button
