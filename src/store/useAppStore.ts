@@ -7,8 +7,9 @@ import type {
   ChoreSettings, RewardMilestoneType,
 } from './types';
 import { XP_PER_ATTEND, getLevel, DEFAULT_CHORE_SETTINGS } from './types';
+import { db } from '../lib/db';
 
-// ─── Badge check (class XP) ────────────────────────────────────────────────────
+// ─── Badge check ──────────────────────────────────────────────────────────────
 const checkNewBadges = (
   child: Child,
   allRecords: AttendanceRecord[],
@@ -29,9 +30,9 @@ const checkNewBadges = (
   const sportCount = childRecords.filter((r) => allClasses.find((c) => c.id === r.classId)?.category === 'Sport').length;
   if (sportCount >= 5) grant('soccer-star');
   const artCount = childRecords.filter((r) => allClasses.find((c) => c.id === r.classId)?.category === 'Art').length;
-  if (artCount >= 1)  grant('artist');
+  if (artCount >= 1)   grant('artist');
   const acadCount = childRecords.filter((r) => allClasses.find((c) => c.id === r.classId)?.category === 'Academic').length;
-  if (acadCount >= 5) grant('scholar');
+  if (acadCount >= 5)  grant('scholar');
   const sorted = [...childRecords].sort((a, b) => a.date.localeCompare(b.date));
   let streak = 0;
   for (let i = sorted.length - 1; i >= 0; i--) { if (sorted[i].status === 'attended') streak++; else break; }
@@ -39,9 +40,9 @@ const checkNewBadges = (
   return newBadges;
 };
 
-// ─── App State Shape ───────────────────────────────────────────────────────────
+// ─── State shape ──────────────────────────────────────────────────────────────
 interface AppState {
-  // ── UI ──
+  // UI
   theme: Theme;
   activeScreen: Screen;
   activeProfileChildId: string | null;
@@ -50,17 +51,16 @@ interface AppState {
   sidebarCollapsed: boolean;
   globalSearch: string;
   _hasHydrated: boolean;
+  _isSyncing: boolean;
 
-  // ── Class gamification celebration triggers ──
+  // Celebration triggers
   newlyEarnedBadge: BadgeId | null;
-
-  // ── Chore celebration triggers ──
   newHeartChildId: string | null;
   newStarChildId:  string | null;
   pendingGiftChildId: string | null;
   giftSnoozedUntil:   string | null;
 
-  // ── Data ──
+  // Data
   children: Child[];
   classes: ClassSession[];
   attendanceRecords: AttendanceRecord[];
@@ -70,11 +70,11 @@ interface AppState {
   rewardMilestones: RewardMilestone[];
   choreSettings: ChoreSettings;
 
-  // ── Filters ──
+  // Filters
   filter: FilterState;
   activeChildFilter: string;
 
-  // ── UI Actions ──
+  // UI actions
   setHasHydrated:        (v: boolean) => void;
   toggleTheme:           () => void;
   setScreen:             (s: Screen) => void;
@@ -90,12 +90,15 @@ interface AppState {
   snoozeGift:            () => void;
   checkPendingGift:      () => void;
 
-  // ── Children ──
+  // DB sync
+  loadFromDB: () => Promise<void>;
+
+  // Children
   addChild:    (c: Child) => void;
   updateChild: (id: string, updates: Partial<Child>) => void;
   deleteChild: (id: string) => void;
 
-  // ── Classes ──
+  // Classes
   addClass:               (c: ClassSession) => void;
   addClasses:             (cs: ClassSession[]) => void;
   updateClass:            (id: string, u: Partial<ClassSession>) => void;
@@ -107,17 +110,17 @@ interface AppState {
   rescheduleClass:        (id: string, d: string, t: string, r: string) => void;
   setClassReaction:       (id: string, r: ClassReaction) => void;
 
-  // ── Attendance & mood ──
+  // Attendance & mood
   addAttendanceRecord:  (r: AttendanceRecord) => void;
   updateAttendanceNote: (id: string, note: string) => void;
   addMoodEntry:         (childId: string, e: MoodEntry) => void;
 
-  // ── Notifications ──
+  // Notifications
   addNotification:          (n: Omit<AppNotification, 'id'|'createdAt'|'read'>) => void;
   markAllNotificationsRead: () => void;
   clearNotifications:       () => void;
 
-  // ── Chores ──
+  // Chores
   addChore:            (c: Chore) => void;
   updateChore:         (id: string, u: Partial<Chore>) => void;
   deleteChore:         (id: string) => void;
@@ -127,11 +130,11 @@ interface AppState {
   claimGift:           (childId: string, giftNote: string) => void;
   updateChoreSettings: (u: Partial<ChoreSettings>) => void;
 
-  // ── Games ──
+  // Games
   addToWordCollection: (childId: string, word: string) => void;
   awardXP:             (childId: string, xp: number) => void;
 
-  // ── Filters ──
+  // Filters
   setFilter:   (u: Partial<FilterState>) => void;
   resetFilter: () => void;
 }
@@ -140,14 +143,14 @@ const defaultFilter: FilterState = {
   childId:'', category:'', status:'', searchQuery:'', dateFrom:'', dateTo:'',
 };
 
-// ─── Store ─────────────────────────────────────────────────────────────────────
+// ─── Store ────────────────────────────────────────────────────────────────────
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      // ── Initial state ──
+      // Initial state
       theme:'light', activeScreen:'dashboard', activeProfileChildId:null,
       onboardingComplete:false, soundEnabled:true, sidebarCollapsed:false,
-      globalSearch:'', _hasHydrated: false,
+      globalSearch:'', _hasHydrated:false, _isSyncing:false,
       newlyEarnedBadge:null, newHeartChildId:null, newStarChildId:null,
       pendingGiftChildId:null, giftSnoozedUntil:null,
       children:[], classes:[], attendanceRecords:[],
@@ -155,14 +158,24 @@ export const useAppStore = create<AppState>()(
       choreSettings: DEFAULT_CHORE_SETTINGS,
       filter:defaultFilter, activeChildFilter:'',
 
-      // ── UI ──
+      // ── UI ──────────────────────────────────────────────────────────────────
       setHasHydrated:       (v) => set({ _hasHydrated: v }),
-      toggleTheme:          () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
+      toggleTheme:          () => {
+        const theme = get().theme === 'light' ? 'dark' : 'light';
+        set({ theme });
+        db.settings.save({ ...get(), theme });
+      },
       setScreen:            (screen) => set({ activeScreen: screen }),
       setActiveProfile:     (id) => set({ activeProfileChildId: id, activeScreen: id ? 'profile' : 'children' }),
-      completeOnboarding:   () => set({ onboardingComplete: true }),
+      completeOnboarding:   () => {
+        set({ onboardingComplete: true });
+        db.settings.save({ ...get(), onboardingComplete: true });
+      },
       setActiveChildFilter: (id) => set({ activeChildFilter: id }),
-      setSoundEnabled:      (v) => set({ soundEnabled: v }),
+      setSoundEnabled:      (v) => {
+        set({ soundEnabled: v });
+        db.settings.save({ ...get(), soundEnabled: v });
+      },
       setSidebarCollapsed:  (v) => set({ sidebarCollapsed: v }),
       setGlobalSearch:      (q) => set({ globalSearch: q }),
       clearNewBadge:        () => set({ newlyEarnedBadge: null }),
@@ -182,31 +195,90 @@ export const useAppStore = create<AppState>()(
         if (unclaimedGift) set({ pendingGiftChildId: unclaimedGift.childId, giftSnoozedUntil: null });
       },
 
-      // ── Children ──
-      addChild:    (child) => set((s) => ({ children: [...s.children, child] })),
-      updateChild: (id, upd) => set((s) => ({ children: s.children.map((c) => c.id === id ? { ...c, ...upd } : c) })),
-      deleteChild: (id) => set((s) => {
-        const removedIds = new Set(s.classes.filter((c) => c.childId === id).map((c) => c.id));
-        return {
-          children: s.children.filter((c) => c.id !== id),
-          classes:  s.classes.filter((c) => c.childId !== id),
-          attendanceRecords: s.attendanceRecords.filter((r) => !removedIds.has(r.classId)),
-          chores: s.chores.filter((c) => c.assignedChildId !== id),
-          choreCompletions: s.choreCompletions.filter((c) => c.childId !== id),
-          rewardMilestones: s.rewardMilestones.filter((m) => m.childId !== id),
-        };
-      }),
+      // ── DB sync — load everything from Supabase on startup ─────────────────
+      loadFromDB: async () => {
+        if (get()._isSyncing) return;
+        set({ _isSyncing: true });
+        try {
+          const data = await db.loadAll();
+          if (!data) return;
+          const s = get();
+          set({
+            children:          data.children.length    > 0 ? data.children    : s.children,
+            classes:           data.classes.length     > 0 ? data.classes     : s.classes,
+            attendanceRecords: data.attendance.length  > 0 ? data.attendance  : s.attendanceRecords,
+            chores:            data.chores.length      > 0 ? data.chores      : s.chores,
+            choreCompletions:  data.completions.length > 0 ? data.completions : s.choreCompletions,
+            rewardMilestones:  data.milestones.length  > 0 ? data.milestones  : s.rewardMilestones,
+            // Merge settings if they exist in DB
+            ...(data.settings
+              ? {
+                  theme:            (data.settings as AppState).theme            ?? s.theme,
+                  onboardingComplete:(data.settings as AppState).onboardingComplete ?? s.onboardingComplete,
+                  soundEnabled:     (data.settings as AppState).soundEnabled     ?? s.soundEnabled,
+                  choreSettings:    (data.settings as AppState).choreSettings    ?? s.choreSettings,
+                }
+              : {}),
+          });
+        } catch (e) {
+          console.error('[loadFromDB]', e);
+        } finally {
+          set({ _isSyncing: false });
+        }
+      },
 
-      // ── Classes ──
-      addClass:    (cls) => set((s) => ({ classes: [...s.classes, cls] })),
-      addClasses:  (cs)  => set((s) => ({ classes: [...s.classes, ...cs] })),
-      updateClass: (id, u) => set((s) => ({ classes: s.classes.map((c) => c.id === id ? { ...c, ...u } : c) })),
-      updateRecurringClasses: (gid, u, from) =>
-        set((s) => ({ classes: s.classes.map((c) => c.recurringGroupId === gid && c.date >= from ? { ...c, ...u } : c) })),
-      deleteClass: (id) => set((s) => ({
-        classes: s.classes.filter((c) => c.id !== id),
-        attendanceRecords: s.attendanceRecords.filter((r) => r.classId !== id),
-      })),
+      // ── Children ────────────────────────────────────────────────────────────
+      addChild: (child) => {
+        set((s) => ({ children: [...s.children, child] }));
+        db.children.upsert(child);
+      },
+      updateChild: (id, upd) => {
+        set((s) => ({ children: s.children.map((c) => c.id === id ? { ...c, ...upd } : c) }));
+        const updated = get().children.find((c) => c.id === id);
+        if (updated) db.children.upsert(updated);
+      },
+      deleteChild: (id) => {
+        set((s) => {
+          const removedIds = new Set(s.classes.filter((c) => c.childId === id).map((c) => c.id));
+          return {
+            children:          s.children.filter((c) => c.id !== id),
+            classes:           s.classes.filter((c) => c.childId !== id),
+            attendanceRecords: s.attendanceRecords.filter((r) => !removedIds.has(r.classId)),
+            chores:            s.chores.filter((c) => c.assignedChildId !== id),
+            choreCompletions:  s.choreCompletions.filter((c) => c.childId !== id),
+            rewardMilestones:  s.rewardMilestones.filter((m) => m.childId !== id),
+          };
+        });
+        db.children.delete(id);
+      },
+
+      // ── Classes ─────────────────────────────────────────────────────────────
+      addClass: (cls) => {
+        set((s) => ({ classes: [...s.classes, cls] }));
+        db.classes.upsert(cls);
+      },
+      addClasses: (cs) => {
+        set((s) => ({ classes: [...s.classes, ...cs] }));
+        cs.forEach((c) => db.classes.upsert(c));
+      },
+      updateClass: (id, u) => {
+        set((s) => ({ classes: s.classes.map((c) => c.id === id ? { ...c, ...u } : c) }));
+        const updated = get().classes.find((c) => c.id === id);
+        if (updated) db.classes.upsert(updated);
+      },
+      updateRecurringClasses: (gid, u, from) => {
+        set((s) => ({ classes: s.classes.map((c) => c.recurringGroupId === gid && c.date >= from ? { ...c, ...u } : c) }));
+        get().classes
+          .filter((c) => c.recurringGroupId === gid && c.date >= from)
+          .forEach((c) => db.classes.upsert(c));
+      },
+      deleteClass: (id) => {
+        set((s) => ({
+          classes:           s.classes.filter((c) => c.id !== id),
+          attendanceRecords: s.attendanceRecords.filter((r) => r.classId !== id),
+        }));
+        db.classes.delete(id);
+      },
 
       markAttended: (id) => {
         const now = new Date().toISOString();
@@ -219,11 +291,11 @@ export const useAppStore = create<AppState>()(
             id:crypto.randomUUID(), classId:id, date:cls.date,
             status:'attended', progressNote:'', createdAt:now,
           };
-          const newRecords = [...s.attendanceRecords, record];
-          const newXP      = child.xp + XP_PER_ATTEND;
-          const newLevel   = getLevel(newXP);
-          const tempChild  = { ...child, xp:newXP, level:newLevel };
-          const newBadges  = checkNewBadges(tempChild, newRecords, s.classes);
+          const newRecords   = [...s.attendanceRecords, record];
+          const newXP        = child.xp + XP_PER_ATTEND;
+          const newLevel     = getLevel(newXP);
+          const tempChild    = { ...child, xp:newXP, level:newLevel };
+          const newBadges    = checkNewBadges(tempChild, newRecords, s.classes);
           const updatedChild = { ...child, xp:newXP, level:newLevel, badges:[...child.badges,...newBadges] };
           const notif: AppNotification = {
             id:crypto.randomUUID(), type:'attended', read:false, createdAt:now,
@@ -233,12 +305,19 @@ export const useAppStore = create<AppState>()(
             id:crypto.randomUUID(), type:'badge' as const, read:false, createdAt:now,
             title:'New badge unlocked! 🏆', message:`${child.name} earned a new badge!`,
           }));
+
+          // Sync to DB
+          db.attendance.upsert(record);
+          db.children.upsert(updatedChild);
+          const updatedCls = { ...cls, status:'attended' as ClassStatus };
+          db.classes.upsert(updatedCls);
+
           return {
-            classes: s.classes.map((c) => c.id === id ? { ...c, status:'attended' as ClassStatus } : c),
+            classes:           s.classes.map((c) => c.id === id ? updatedCls : c),
             attendanceRecords: newRecords,
-            children: s.children.map((c) => c.id === child.id ? updatedChild : c),
-            newlyEarnedBadge: newBadges[0] ?? s.newlyEarnedBadge,
-            notifications: [...s.notifications, notif, ...badgeNotifs],
+            children:          s.children.map((c) => c.id === child.id ? updatedChild : c),
+            newlyEarnedBadge:  newBadges[0] ?? s.newlyEarnedBadge,
+            notifications:     [...s.notifications, notif, ...badgeNotifs],
           };
         });
       },
@@ -252,46 +331,82 @@ export const useAppStore = create<AppState>()(
             id:crypto.randomUUID(), classId:id, date:cls.date,
             status:'missed', progressNote:'', createdAt:now,
           };
+          const updatedCls = { ...cls, status:'missed' as ClassStatus };
+          db.attendance.upsert(record);
+          db.classes.upsert(updatedCls);
           return {
-            classes: s.classes.map((c) => c.id === id ? { ...c, status:'missed' as ClassStatus } : c),
+            classes:           s.classes.map((c) => c.id === id ? updatedCls : c),
             attendanceRecords: [...s.attendanceRecords, record],
           };
         });
       },
-      cancelClass: (id) => set((s) => ({
-        classes: s.classes.map((c) => c.id === id ? { ...c, status:'cancelled' as ClassStatus } : c),
-      })),
-      rescheduleClass: (id, d, t, r) => set((s) => ({
-        classes: s.classes.map((c) => c.id === id
-          ? { ...c, status:'rescheduled' as ClassStatus, isRescheduled:true, originalDate:c.date, date:d, time:t, rescheduleReason:r }
-          : c),
-      })),
-      setClassReaction: (id, reaction) =>
-        set((s) => ({ classes: s.classes.map((c) => c.id === id ? { ...c, reaction } : c) })),
 
-      // ── Attendance & mood ──
-      addAttendanceRecord:  (r) => set((s) => ({ attendanceRecords: [...s.attendanceRecords, r] })),
-      updateAttendanceNote: (id, note) =>
-        set((s) => ({ attendanceRecords: s.attendanceRecords.map((r) => r.id === id ? { ...r, progressNote:note } : r) })),
-      addMoodEntry: (childId, entry) =>
-        set((s) => ({ children: s.children.map((c) => c.id === childId ? { ...c, moodLog:[...c.moodLog, entry] } : c) })),
+      cancelClass: (id) => {
+        set((s) => ({
+          classes: s.classes.map((c) => c.id === id ? { ...c, status:'cancelled' as ClassStatus } : c),
+        }));
+        const updated = get().classes.find((c) => c.id === id);
+        if (updated) db.classes.upsert(updated);
+      },
 
-      // ── Notifications ──
+      rescheduleClass: (id, d, t, r) => {
+        set((s) => ({
+          classes: s.classes.map((c) => c.id === id
+            ? { ...c, status:'rescheduled' as ClassStatus, isRescheduled:true, originalDate:c.date, date:d, time:t, rescheduleReason:r }
+            : c),
+        }));
+        const updated = get().classes.find((c) => c.id === id);
+        if (updated) db.classes.upsert(updated);
+      },
+
+      setClassReaction: (id, reaction) => {
+        set((s) => ({ classes: s.classes.map((c) => c.id === id ? { ...c, reaction } : c) }));
+        const updated = get().classes.find((c) => c.id === id);
+        if (updated) db.classes.upsert(updated);
+      },
+
+      // ── Attendance & mood ───────────────────────────────────────────────────
+      addAttendanceRecord: (r) => {
+        set((s) => ({ attendanceRecords: [...s.attendanceRecords, r] }));
+        db.attendance.upsert(r);
+      },
+      updateAttendanceNote: (id, note) => {
+        set((s) => ({ attendanceRecords: s.attendanceRecords.map((r) => r.id === id ? { ...r, progressNote:note } : r) }));
+        const updated = get().attendanceRecords.find((r) => r.id === id);
+        if (updated) db.attendance.upsert(updated);
+      },
+      addMoodEntry: (childId, entry) => {
+        set((s) => ({ children: s.children.map((c) => c.id === childId ? { ...c, moodLog:[...c.moodLog, entry] } : c) }));
+        const updated = get().children.find((c) => c.id === childId);
+        if (updated) db.children.upsert(updated);
+      },
+
+      // ── Notifications ───────────────────────────────────────────────────────
       addNotification: (n) => set((s) => ({
         notifications: [{ id:crypto.randomUUID(), read:false, createdAt:new Date().toISOString(), ...n }, ...s.notifications].slice(0, 50),
       })),
       markAllNotificationsRead: () => set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read:true })) })),
-      clearNotifications: () => set({ notifications: [] }),
+      clearNotifications:       () => set({ notifications: [] }),
 
-      // ── Chores CRUD ──
-      addChore:    (c)    => set((s) => ({ chores: [...s.chores, c] })),
-      updateChore: (id,u) => set((s) => ({ chores: s.chores.map((c) => c.id === id ? { ...c, ...u } : c) })),
-      deleteChore: (id)   => set((s) => ({
-        chores: s.chores.filter((c) => c.id !== id),
-        choreCompletions: s.choreCompletions.filter((cc) => cc.choreId !== id),
-      })),
+      // ── Chores ──────────────────────────────────────────────────────────────
+      addChore: (c) => {
+        set((s) => ({ chores: [...s.chores, c] }));
+        db.chores.upsert(c);
+      },
+      updateChore: (id, u) => {
+        set((s) => ({ chores: s.chores.map((c) => c.id === id ? { ...c, ...u } : c) }));
+        const updated = get().chores.find((c) => c.id === id);
+        if (updated) db.chores.upsert(updated);
+      },
+      deleteChore: (id) => {
+        set((s) => ({
+          chores:           s.chores.filter((c) => c.id !== id),
+          choreCompletions: s.choreCompletions.filter((cc) => cc.choreId !== id),
+        }));
+        db.chores.delete(id);
+      },
 
-      // ── Complete a chore ──
+      // ── Complete a chore — Points → Hearts → Stars → Gift ──────────────────
       completeChore: (choreId, childId, date) => {
         const now = new Date().toISOString();
         set((s) => {
@@ -329,7 +444,7 @@ export const useAppStore = create<AppState>()(
           let loops = 0;
           while (newPoints >= pointsPerHeart && loops < 20) {
             loops++;
-            newPoints -= pointsPerHeart;
+            newPoints    -= pointsPerHeart;
             newHearts++;
             newLifeHearts++;
             newHeartChildId = childId;
@@ -367,10 +482,15 @@ export const useAppStore = create<AppState>()(
             message:`${child.name}: ${chore.name} (${chore.points > 0 ? '+' : ''}${chore.points} pts)${tokenBonus ? ' · 🎮 +1 game token!' : ''}`,
           };
 
+          // Sync to DB (fire and forget)
+          db.choreCompletions.upsert(completion);
+          db.children.upsert(updatedChild);
+          milestones.forEach((m) => db.milestones.upsert(m));
+
           return {
-            choreCompletions: newCompletions,
-            rewardMilestones: [...s.rewardMilestones, ...milestones],
-            children: s.children.map((c) => c.id === childId ? updatedChild : c),
+            choreCompletions:  newCompletions,
+            rewardMilestones:  [...s.rewardMilestones, ...milestones],
+            children:          s.children.map((c) => c.id === childId ? updatedChild : c),
             newHeartChildId,
             newStarChildId,
             pendingGiftChildId,
@@ -387,21 +507,24 @@ export const useAppStore = create<AppState>()(
           if (!completion) return s;
           const child = s.children.find((c) => c.id === childId);
           if (!child) return s;
+          db.choreCompletions.deleteOne(completion.id);
+          const updatedChild = { ...child, points: child.points - completion.points };
+          db.children.upsert(updatedChild);
           return {
             choreCompletions: s.choreCompletions.filter((cc) => cc.id !== completion.id),
-            children: s.children.map((c) =>
-              c.id === childId ? { ...c, points: c.points - completion.points } : c,
-            ),
+            children: s.children.map((c) => c.id === childId ? updatedChild : c),
           };
         });
       },
 
-      resetTodayChores: (childId, date) =>
+      resetTodayChores: (childId, date) => {
         set((s) => ({
           choreCompletions: s.choreCompletions.filter(
             (cc) => !(cc.childId === childId && cc.date === date),
           ),
-        })),
+        }));
+        db.choreCompletions.deleteByChildDate(childId, date);
+      },
 
       claimGift: (childId, giftNote) => {
         set((s) => {
@@ -409,30 +532,35 @@ export const useAppStore = create<AppState>()(
             .filter((m) => m.childId === childId && m.type === 'gift' && !m.isClaimed)
             .sort((a, b) => b.date.localeCompare(a.date))[0];
           if (!pending) return { pendingGiftChildId: null };
+          const updated = { ...pending, isClaimed:true, claimedAt:new Date().toISOString(), giftNote };
+          db.milestones.upsert(updated);
           return {
-            rewardMilestones: s.rewardMilestones.map((m) =>
-              m.id === pending.id ? { ...m, isClaimed:true, claimedAt:new Date().toISOString(), giftNote } : m,
-            ),
+            rewardMilestones:  s.rewardMilestones.map((m) => m.id === pending.id ? updated : m),
             pendingGiftChildId: null,
-            giftSnoozedUntil: null,
+            giftSnoozedUntil:  null,
           };
         });
       },
 
-      updateChoreSettings: (u) =>
-        set((s) => ({ choreSettings: { ...s.choreSettings, ...u } })),
+      updateChoreSettings: (u) => {
+        set((s) => ({ choreSettings: { ...s.choreSettings, ...u } }));
+        db.settings.save({ ...get(), choreSettings: get().choreSettings });
+      },
 
-      // ── Games ──
-      addToWordCollection: (childId, word) =>
+      // ── Games ────────────────────────────────────────────────────────────────
+      addToWordCollection: (childId, word) => {
         set((s) => ({
           children: s.children.map((c) =>
             c.id === childId && !(c.wordCollection ?? []).includes(word)
               ? { ...c, wordCollection: [...(c.wordCollection ?? []), word] }
               : c,
           ),
-        })),
+        }));
+        const updated = get().children.find((c) => c.id === childId);
+        if (updated) db.children.upsert(updated);
+      },
 
-      awardXP: (childId, xpGain) =>
+      awardXP: (childId, xpGain) => {
         set((s) => ({
           children: s.children.map((c) => {
             if (c.id !== childId) return c;
@@ -440,38 +568,36 @@ export const useAppStore = create<AppState>()(
             const newLevel = getLevel(newXP);
             return { ...c, xp: newXP, level: newLevel };
           }),
-        })),
+        }));
+        const updated = get().children.find((c) => c.id === childId);
+        if (updated) db.children.upsert(updated);
+      },
 
-      // ── Filters ──
+      // ── Filters ─────────────────────────────────────────────────────────────
       setFilter:   (u) => set((s) => ({ filter: { ...s.filter, ...u } })),
       resetFilter: ()  => set({ filter: defaultFilter }),
     }),
 
-    // ─── Persist config ────────────────────────────────────────────────────────
+    // ── Persist config ─────────────────────────────────────────────────────────
     {
-      name: 'kids-class-tracker-store',
-
-      // createJSONStorage is required for Zustand v5 — without it persist
-      // silently fails to write in many environments including Vercel deploys.
+      name:    'kids-class-tracker-store',
       storage: createJSONStorage(() => localStorage),
-
       version: 6,
 
-      // _hasHydrated is runtime-only — never save it to localStorage
+      // _hasHydrated and _isSyncing are runtime-only — never write to localStorage
       partialize: (state) => {
-        const { _hasHydrated, ...rest } = state;
+        const { _hasHydrated, _isSyncing, ...rest } = state;
         return rest;
       },
 
-      // onRehydrateStorage fires after localStorage is read and merged into state.
-      // Setting _hasHydrated lets App.tsx wait before rendering, preventing a
-      // flash of empty state on page load.
+      // After localStorage rehydrates, mark ready and kick off DB sync
       onRehydrateStorage: () => (state) => {
-        if (state) state.setHasHydrated(true);
+        if (state) {
+          state.setHasHydrated(true);
+        }
       },
 
-      // Accumulating migrations — every version block updates state in place.
-      // A single return at the end means ALL pending migrations always run.
+      // Accumulating migrations — all pending versions always run in sequence
       migrate: (raw: unknown, version: number) => {
         let state = { ...(raw as Record<string, unknown>) };
 
@@ -487,9 +613,9 @@ export const useAppStore = create<AppState>()(
         if (version < 3) {
           state = {
             ...state,
-            notifications: state.notifications ?? [],
-            globalSearch: state.globalSearch ?? '',
-            sidebarCollapsed: state.sidebarCollapsed ?? false,
+            notifications:   state.notifications   ?? [],
+            globalSearch:    state.globalSearch    ?? '',
+            sidebarCollapsed:state.sidebarCollapsed ?? false,
           };
         }
 
@@ -501,14 +627,14 @@ export const useAppStore = create<AppState>()(
           state = {
             ...state,
             children,
-            chores: state.chores ?? [],
-            choreCompletions: state.choreCompletions ?? [],
-            rewardMilestones: state.rewardMilestones ?? [],
-            choreSettings: { ...DEFAULT_CHORE_SETTINGS, ...((state.choreSettings as Record<string,unknown>) ?? {}) },
-            newHeartChildId: null,
-            newStarChildId: null,
-            pendingGiftChildId: null,
-            giftSnoozedUntil: null,
+            chores:            state.chores            ?? [],
+            choreCompletions:  state.choreCompletions  ?? [],
+            rewardMilestones:  state.rewardMilestones  ?? [],
+            choreSettings:     { ...DEFAULT_CHORE_SETTINGS, ...((state.choreSettings as Record<string,unknown>) ?? {}) },
+            newHeartChildId:   null,
+            newStarChildId:    null,
+            pendingGiftChildId:null,
+            giftSnoozedUntil:  null,
           };
         }
 
@@ -523,8 +649,7 @@ export const useAppStore = create<AppState>()(
           };
         }
 
-        // version 6: adds _hasHydrated (runtime only, not stored)
-        // no data migration needed — partialize handles exclusion
+        // version 6: _hasHydrated + _isSyncing added (runtime only, excluded via partialize)
 
         return state as unknown as AppState;
       },

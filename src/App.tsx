@@ -20,26 +20,38 @@ import './styles/animations.css';
 import './styles/components.css';
 
 function App() {
-  const { onboardingComplete, activeScreen, theme, _hasHydrated } = useAppStore();
+  const { onboardingComplete, activeScreen, theme, _hasHydrated, loadFromDB } = useAppStore();
 
+  // Apply theme to <html> element
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // Wait for Zustand persist to rehydrate from localStorage before rendering.
-  // Without this guard, the app briefly renders with empty state (no classes,
-  // no children) and can overwrite good data with blank initial values.
+  // Once localStorage has hydrated, fetch the latest data from Supabase.
+  // The app is already usable from localStorage — this just syncs any
+  // changes made on other devices or sessions.
+  useEffect(() => {
+    if (_hasHydrated) {
+      loadFromDB();
+    }
+  }, [_hasHydrated]);
+
+  // Show a minimal loading state while localStorage is being read.
+  // This prevents a flash of empty state that could overwrite good data.
   if (!_hasHydrated) {
     return (
-      <div data-theme={theme} style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-primary)',
-        fontFamily: 'Nunito, sans-serif',
-        fontSize: '1.5rem',
-      }}>
+      <div
+        data-theme={theme}
+        style={{
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-primary)',
+          fontFamily: 'Nunito, sans-serif',
+          fontSize: '2.5rem',
+        }}
+      >
         🦁
       </div>
     );
@@ -49,28 +61,28 @@ function App() {
     return (
       <ToastProvider>
         <div data-theme={theme}>
-          <Onboarding/>
+          <Onboarding />
         </div>
       </ToastProvider>
     );
   }
 
   const screens: Record<string, ReactElement> = {
-    dashboard: <Dashboard/>,
-    calendar:  <CalendarView/>,
-    classes:   <ClassList/>,
-    children:  <ChildrenList/>,
-    costs:     <CostSummary/>,
-    profile:   <ChildProfile/>,
-    settings:  <Settings/>,
-    chores:    <ChoreBoard/>,
-    games:     <GamesSection/>,
+    dashboard: <Dashboard />,
+    calendar:  <CalendarView />,
+    classes:   <ClassList />,
+    children:  <ChildrenList />,
+    costs:     <CostSummary />,
+    profile:   <ChildProfile />,
+    settings:  <Settings />,
+    chores:    <ChoreBoard />,
+    games:     <GamesSection />,
   };
 
   return (
     <ToastProvider>
       <AppShell>
-        {screens[activeScreen] ?? <Dashboard/>}
+        {screens[activeScreen] ?? <Dashboard />}
       </AppShell>
     </ToastProvider>
   );
