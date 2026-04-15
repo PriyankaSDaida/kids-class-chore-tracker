@@ -1,18 +1,18 @@
 <div align="center">
 
-# 🦁 Class Quest
+# ⚔️ Class Quest
 
-### *The all-in-one kids activity & chore tracker that makes parenting fun*
+### *The all-in-one kids activity tracker, quest board & mini-game hub*
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
-[![Zustand](https://img.shields.io/badge/Zustand-State-FF6B6B?style=for-the-badge)](https://zustand-demo.pmnd.rs)
+[![Zustand](https://img.shields.io/badge/Zustand-5-FF6B6B?style=for-the-badge)](https://zustand-demo.pmnd.rs)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-**Track classes · Assign chores · Earn rewards · Level up together**
+**Track classes · Complete quests · Earn rewards · Play games · Level up together**
 
-[✨ Features](#-features) · [🚀 Getting Started](#-getting-started) · [📸 Screenshots](#-screenshots) · [🏗 Architecture](#-architecture) · [🎮 Reward System](#-reward-system)
+[✨ Features](#-features) · [🚀 Getting Started](#-getting-started) · [🏗 Architecture](#-architecture) · [🎮 Games](#-mini-games) · [🏆 Reward System](#-reward-system)
 
 </div>
 
@@ -20,95 +20,117 @@
 
 ## 🌟 What is Class Quest?
 
-Class Quest is a **desktop-first, fully responsive** web app designed for parents and kids. It combines a beautiful **extracurricular class tracker** with a motivating **chore & rewards system** — all in one place.
+Class Quest is a **desktop-first, fully responsive** web app for parents and kids. It combines a beautiful **extracurricular class tracker** with a gamified **Quest Board** (chore tracker), a **rewards chain** (Points → Hearts → Stars → Gifts), and **four built-in educational mini-games** — all in one place.
 
-Kids earn **Points → Hearts → Stars → Gifts** as they complete chores, while parents stay on top of swimming lessons, piano classes, soccer practice and more. Leo the Lion 🦁 (our mascot) cheers them on every step of the way.
+Leo the Lion 🦁 is your mascot, cheering kids on every step of the way.
 
-> 💡 **Everything runs in your browser.** No account needed, no data sent to any server — 100% local storage.
+> 💡 **Everything runs in your browser.** No account needed, no server, no data sent anywhere — 100% local storage.
 
 ---
 
 ## ✨ Features
 
 ### 🗂 Class Tracker
-- **Add / edit / delete** classes with name, child, date, time, duration, location, category, recurring frequency, instructor, and notes
-- **6 categories** with custom illustrated icons: ⚽ Sport · 🎵 Music · 🎨 Art · 📚 Academic · 💃 Dance · ⭐ Other
-- **Recurring classes** — one-time, weekly, biweekly, monthly; generates all future instances in one click
-- **Mark attended / missed** with one tap — earns XP for the child
-- **Reschedule a class** — picks a new date/time with an optional reason; tagged visually with a 🔄 Rescheduled badge
-- **Cancel** (keeps record) vs **Delete** (removes permanently) with confirmation
+- Add / edit / delete classes with name, child, date, time, duration, location, category, recurring frequency, instructor, and notes
+- **6 categories** with custom SVG illustrated icons: ⚽ Sport · 🎵 Music · 🎨 Art · 📚 Academic · 💃 Dance · ⭐ Other
+- **Recurring classes** — one-time, weekly, biweekly, monthly; auto-generates 12 future sessions
+- **Mark attended / missed** with one tap — triggers mood check-in and confetti celebration
+- **Reschedule** — new date/time with optional reason; tagged with 🔄 Rescheduled badge
+- **Cancel** (keeps record) vs **Delete** (removes permanently), both with confirmation dialogs
+- **Live countdown chip** on today's cards — turns red when < 30 minutes away
+- **Pre-class reactions** — kids tap "Can't wait! 🙌" or "Not feeling it 😴"
 - **Filter & search** by child, category, date range, or status
-- **Countdown chip** on each upcoming class card — turns red when < 1 hour away
 
 ### 🗓 Calendar
-- Full **monthly grid** with coloured category dots per day
-- **Day detail panel** slides in on desktop (right panel) / bottom sheet on mobile
-- Navigate months, click any day to see its classes
+- Full **monthly grid** with colour-coded category dots per day
+- **Desktop**: right-side panel slides in when a day is selected
+- **Mobile**: bottom sheet animates up
+- Navigate months, add a class directly from any selected day
 
 ### 📊 Dashboard
-- **Hero banner** with motivational greeting, today's class count, and mascot
-- **4-stat chips** — Total · Upcoming · Completed · Missed
-- **3-column desktop grid** — Today's classes | Weekly ring + challenge | Child XP & leaderboard
-- **Week strip** — tap any day to filter today's view
-- **Chore Widget** — daily chore checklist with quick-complete right from the dashboard
-- **Recent Activity feed** — everything that happened today
+- **Hero banner** with time-aware greeting, next class details, and Leo the mascot
+- **4-stat chips** — Total · Done · Upcoming · Missed
+- **3-column desktop grid** — Today's classes + Chore Widget | Weekly ring + Challenge | Child XP + Leaderboard
+- **Week strip** — 7-day horizontal scroll with category dots and completion ratios
+- **Recent Activity feed** — last 5 attendance events and badge unlocks
 
-### 🗂 Chore Board
-- **2-column layout** — Positive Chores (green) | Behaviours (red)
-- Each chore has a name, description, emoji icon, point value, category, recurrence, and assigned child
-- **Positive chores** reward points: "Made the bed" +5 · "Did homework" +10 · "Helped with dinner" +8
-- **Negative records** deduct points: "Left room messy" -3 · "Rude to sibling" -5
-- **Recurring chores** — Daily · Weekdays only · Weekly · One-time — auto-reset each cycle
-- **Animated +/- floating indicator** on every chore completion
-- **Undo** a same-day completion without losing permanent hearts/stars
-- **Reset Today** button to wipe the day's completions cleanly
-- **Parent PIN gate** — optional 4-digit PIN confirmation before marking chores done
-
-### 🎮 Gamification & XP
-- **XP bar** per child — levels up as they attend classes (50 XP per class)
-- **Achievement badges**: 🌟 First Class · 🔥 On Fire · ⚽ Soccer Star · 🎨 Artist · 📚 Scholar · ✅ Perfect Week · 🐦 Early Bird · 🏆 Champion
-- **Streak counter** — consecutive classes attended
-- **Weekly Challenge** card on dashboard
-- **Leaderboard** across all kids in the family
+### ⚔️ Quest Board (Chore Tracker)
+- Day/night themed header — rolling clouds & sun by day, twinkling stars & moon after 7 pm
+- **Golden Quests** (positive chores) and **Watch Out!** cards (behaviour records) in a card grid
+- Each quest card has: animated category icon, rarity system (Silver / Gold / Legendary), streak flame 🔥, lifetime completion mini-bar
+- **Card flip** — tap to reveal full details and the "Complete Quest!" button
+- **Idle float animation** — cards gently bob while waiting to be tapped
+- **+/− floating point indicator** animates upward on every completion
+- **Done Today** section — completed quests move to a greyed row at the bottom
+- **Game token counter** — every 5 quests completed = 1 🎮 token for the Games section
+- **Recurring chores** — daily, weekdays only, weekly, or one-time with auto-reset
+- **Parent PIN gate** — optional 4-digit PIN confirmation before marking quests done
+- **Reset Today** button for parents
 
 ### 🏆 Reward Chain
 ```
 Chore Done → Points → ❤️ Hearts → ⭐ Stars → 🎁 Gift Milestone
 ```
-- Customise every threshold in Settings
-- Full-screen **celebration overlays** on each milestone:
-  - ❤️ Rising hearts animation
-  - ⭐ Starburst + dancing mascot
-  - 🎁 Undismissable gift popup with 3-step parent flow (main → PIN → gift note)
-- **"Remind me later"** snooze on the gift popup (re-appears after 1 hour)
 
-### 👦👧 Child Profiles
-- Emoji avatar + colour theme per child
-- XP bar, level, streak, attendance rate, badge trophy shelf
-- **Class Passport Stamps** — one stamp per category attended
-- **Chore Rewards section** — progress bar to next heart, hearts/stars progress grid
+| Milestone | Trigger | Celebration |
+|-----------|---------|-------------|
+| ❤️ Heart | Every 25 pts | Full-screen rising hearts + pink confetti + Leo |
+| ⭐ Star | Every 5 hearts | SVG starburst ring + golden confetti + mascot dance |
+| 🎁 Gift | Every 5 stars | Undismissable popup — balloon float, gift lid-pop, parent PIN + gift note |
+
+- Hearts and stars are **permanent** — negative chores never take them away
+- Gift popup has a **"Remind me later"** snooze (re-appears after 1 hour)
+- All thresholds are **customisable** in Settings
+
+### 🎮 Mini-Games
+Kids spend 🎮 game tokens (earned from quests) to unlock games:
+
+| Game | Description | XP Reward |
+|------|-------------|-----------|
+| ⚔️ **Math Quest** | Defeat number monsters. Age-adaptive ops. Hero costumes unlock every 5 correct. | +5 XP per answer |
+| 🔤 **Word Builder** | Tap falling letters to spell target words. Words saved to Word Collection. | +5 XP per word |
+| 🃏 **Memory Match** | Match chore icons to names. Age-adaptive grid. Hint costs 1 token. | +10 XP per game |
+| ♻️ **Sorting Safari** | Sort falling items into the right bins in 60 seconds. 1–3 star rating. | +2 XP per sort |
+
+### 👦 Multi-Child Support
+- Add unlimited children with name, age, emoji avatar, colour theme, and favourite emoji
+- Each child has their own XP bar, badge trophy shelf, and reward history
+- **Sidebar child switcher** on desktop; **pill filters** in mobile header
+- **Sibling leaderboard** for friendly XP competition
+
+### 🌍 Ambient World
+- **Day mode**: clouds drift across the sky, animated sun rotates in the corner
+- **Night mode** (after 7 pm): deep blue sky, twinkling stars, glowing moon
+- **Tappable collectibles** — tap a ⭐ 🪙 ❤️ before it disappears for +1 bonus point
+- **Decorative animals** walk / fly across the screen periodically (🦋 🐦 🐇 🐝 🦎)
+- Toggle the ambient world on/off in Settings
+
+### 👤 Child Profile
+- Hero banner with avatar, level, XP bar, points / hearts / stars
+- Progress bar to next ❤️, hearts-toward-⭐ grid, stars-toward-🎁 grid
 - **30-day SVG points chart** — green earned / red deducted bars
-- **Mood check-in log** — 5 moods tracked per class visit
-- **Gift reward history** — every milestone with parent's gift note
+- **Gift Reward History** — every milestone with date and parent's gift note
+- **Badge Trophy Shelf** — 8 unlockable achievement badges
+- **Class Passport Stamps** — one stamp per category attended
+- **Mood Check-In log** — last 10 moods with average score
 
 ### ⚙️ Settings
-- 🌙 Dark Mode / ☀️ Light Mode toggle
-- 🎵 Sound effects on/off (Web Audio API — no files, 100% synthesized)
-- 🗂 Chore Controls:
-  - Kids can mark their own chores (toggle)
-  - Celebration animations on/off
-  - Points per ❤️, Hearts per ⭐, Stars per 🎁 (all adjustable)
-  - Parent PIN — set / change / clear
-  - Family Weekly Chore Report inline
-- 📥 Export all data as JSON backup
-- 🔄 Reset All Data (with confirmation)
+- Light / Dark Mode toggle
+- Sound on/off (Web Audio API — all sounds synthesized, no audio files)
+- Separate sound toggles: celebrations · correct answers · wrong answers · ambient
+- Adjustable reward thresholds (pts/heart, hearts/star, stars/gift)
+- Parent PIN setup — set, change, or clear
+- Family weekly chore report
+- Export all data as JSON backup
+- Reset all data with confirmation
 
-### 📱 Fully Responsive Layout
+### 📱 Responsive Layout
+
 | Breakpoint | Layout |
 |---|---|
-| **≥ 1024px** (Desktop) | Fixed 240px sidebar · TopBar with search + notification bell · 3-column dashboard |
-| **768–1023px** (Tablet) | Collapsed 64px icon-only sidebar · content fills remaining width |
-| **< 768px** (Mobile) | No sidebar · sticky mobile header · bottom tab bar · stacked layouts |
+| **≥ 1024px** Desktop | Fixed 240px sidebar · TopBar with global search + notification bell · 3-column dashboard |
+| **768–1023px** Tablet | Collapsed 64px icon-only sidebar |
+| **< 768px** Mobile | No sidebar · sticky mobile header · bottom tab bar (5 tabs) · bottom-sheet modals |
 
 ---
 
@@ -131,119 +153,259 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** in your browser. The onboarding wizard will walk you through adding your first child. 🎉
+Open **http://localhost:5173** — the onboarding wizard will walk you through adding your first child and class.
 
 ### Build for Production
 
 ```bash
-npm run build        # Outputs to /dist
-npm run preview      # Preview the production build locally
+npm run build        # outputs to /dist
+npm run preview      # preview the production build locally
 ```
+
+### Deploy to Vercel
+
+Connect your GitHub repo to Vercel — it auto-detects Vite and deploys on every push to `main`. Your app will be live at `your-project.vercel.app` within 60 seconds.
+
+> **Note**: make sure `tsconfig.app.json` has `"noUnusedLocals": false` and `"noUnusedParameters": false` to prevent TypeScript warnings from blocking the Vercel build.
 
 ---
 
 ## 🏗 Architecture
 
-<div align="center">
-
-![Class Quest Architecture Diagram](public/architecture.png)
-
-</div>
+The app is organised into four clear layers flowing top-down. The UI dispatches to a single Zustand store, which is persisted to `localStorage` via Zustand's persist middleware.
 
 ```
-src/
-├── components/
-│   ├── calendar/        # CalendarView — month grid + day panel
-│   ├── children/        # ChildrenList — add/edit/delete kids
-│   ├── chores/          # ChoreBoard, ChoreCard, ChoreForm, ChoreWidget
-│   │                    # PinPad, FloatingPoint, PointsChart
-│   │                    # HeartCelebration, StarCelebration, GiftMilestoneModal
-│   │                    # ChoreEffects (global celebration orchestrator)
-│   ├── classes/         # ClassList, ClassForm, RescheduleModal, AttendanceLog
-│   ├── costs/           # CostSummary — monthly cost tracker
-│   ├── dashboard/       # Dashboard, HeroBanner, StatsBar, WeekStrip, WeeklyRing
-│   │                    # ClassCard, RecentActivity, MoodCheckIn
-│   ├── gamification/    # XPBar, BadgeGrid, BadgeCelebration, WeeklyChallenge
-│   │                    # Leaderboard, StreakFlame, ConfettiEffect
-│   ├── layout/          # AppShell, Sidebar, TopBar, MobileHeader, BottomNav
-│   ├── onboarding/      # Multi-step onboarding wizard
-│   ├── profile/         # ChildProfile — full rewards + stats page
-│   ├── settings/        # Settings with chore controls + parent PIN
-│   └── ui/              # Avatar, Badge, Mascot, Toast, Modal, EmptyState, ConfirmDialog
-├── hooks/
-│   ├── useAppStore.ts   # (re-export)
-│   ├── useAttendance.ts # Streak + attendance % calculations
-│   ├── useCountdown.ts  # Live countdown to next class
-│   ├── useFilter.ts     # Class filter/search logic
-│   ├── useMediaQuery.ts # Responsive breakpoint hooks
-│   ├── useNotifications.ts
-│   ├── useRecurring.ts  # Recurring class generation
-│   └── useSound.ts      # Web Audio API sound engine
-├── store/
-│   ├── types.ts         # All TypeScript types + constants
-│   └── useAppStore.ts   # Zustand store with persist middleware
-├── styles/
-│   ├── index.css        # CSS variables, tokens, global resets
-│   ├── components.css   # All component styles (BEM-ish, no Tailwind)
-│   └── animations.css   # Keyframe animations
-└── utils/
-    ├── dateUtils.ts
-    └── colorUtils.ts
+┌──────────────────────────────────────────────────────────────────────┐
+│                        PRESENTATION LAYER                            │
+│          React 19 · Vite 5 · Vanilla CSS + 80+ CSS @keyframes        │
+│                                                                      │
+│  AppShell → Sidebar (desktop) │ TopBar │ MobileHeader │ BottomNav    │
+│                                                                      │
+│  Dashboard     CalendarView    ClassList     QuestBoard              │
+│  GamesSection  ChildProfile    CostSummary   Settings                │
+│  Onboarding    AmbientWorld                                          │
+│                                                                      │
+│  Global overlays: HeartCelebration · StarCelebration                 │
+│                   GiftMilestoneModal · BadgeCelebration              │
+│                   ConfettiEffect                                     │
+└────────────────────────────┬─────────────────────────────────────────┘
+                             │  hooks / setState
+┌────────────────────────────▼─────────────────────────────────────────┐
+│                     STATE MANAGEMENT LAYER                           │
+│              Single Zustand store + persist middleware (v5)          │
+│                                                                      │
+│  Data:   children · classes · attendanceRecords                      │
+│          chores · choreCompletions · rewardMilestones                │
+│          notifications · choreSettings · filter                      │
+│                                                                      │
+│  UI:     activeScreen · activeChildFilter · theme · soundEnabled     │
+│                                                                      │
+│  Triggers: newHeartChildId · newStarChildId                          │
+│            pendingGiftChildId · newlyEarnedBadge                     │
+│                                                                      │
+│  Custom hooks:                                                       │
+│  useAttendance · useCountdown · useFilter · useMediaQuery            │
+│  useNotifications · useRecurring · useSound                          │
+└────────────────────────────┬─────────────────────────────────────────┘
+                             │  JSON serialise / deserialise
+┌────────────────────────────▼─────────────────────────────────────────┐
+│                       PERSISTENCE LAYER                              │
+│              100% local — nothing leaves the browser                 │
+│                                                                      │
+│  localStorage key: "kids-class-tracker-store"                        │
+│  Schema migration: versions 1 → 5 handled in migrate()               │
+│  Export: html2canvas + jsPDF (client-side PDF/image generation)      │
+└────────────────────────────┬─────────────────────────────────────────┘
+                             │
+┌────────────────────────────▼─────────────────────────────────────────┐
+│                    CROSS-CUTTING UTILITIES                           │
+│                                                                      │
+│  dateUtils.ts    format, recurring dates, todayStr, countdowns       │
+│  colorUtils.ts   category colours, child palettes, hex→rgba          │
+│  Points engine   hearts/stars/gift chain inside completeChore()      │
+│  Badge engine    checkNewBadges() called on every markAttended()     │
+│  Sound engine    Web Audio API — all tones synthesized, no files     │
+│  Animations CSS  80+ @keyframes, prefers-reduced-motion safe         │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-### Tech Stack
+### Rewards flow
 
-| Layer | Choice | Why |
-|---|---|---|
-| **Framework** | React 18 | Component model, concurrent features |
-| **Language** | TypeScript 5 | Type safety across the whole codebase |
-| **Build tool** | Vite 5 | Sub-second HMR, fast production builds |
-| **State** | Zustand + `persist` | Zero boilerplate, persisted to localStorage |
-| **Styling** | Vanilla CSS | Full control, no runtime overhead, dark mode via `data-theme` |
-| **Icons** | Lucide React | Consistent, tree-shakeable SVG icons |
-| **Dates** | date-fns | Lightweight, tree-shakeable date utilities |
-| **Sound** | Web Audio API | No external files — all sounds synthesized in-browser |
-| **Charts** | Pure SVG | No chart library dependency — hand-drawn 30-day bar chart |
+```
+completeChore(choreId, childId, date)
+        │
+        ▼
+  child.points += chore.points   ← can go negative; never affects hearts/stars
+        │
+        └─► while points >= pointsPerHeart (default 25):
+                points  -= 25
+                hearts++   lifetimeHearts++
+                trigger → HeartCelebration overlay
+                │
+                └─► if hearts >= heartsPerStar (default 5):
+                        hearts -= 5
+                        stars++   lifetimeStars++
+                        trigger → StarCelebration overlay
+                        │
+                        └─► if stars >= starsPerGift (default 5):
+                                stars -= 5
+                                trigger → GiftMilestoneModal (undismissable)
+                                          parent PIN → gift note → claimGift()
+```
+
+### Component tree
+
+```
+App
+├── ToastProvider
+└── AppShell
+    ├── AmbientWorld              (z-index 0, behind everything)
+    ├── Sidebar                   (desktop / tablet)
+    ├── main-area
+    │   ├── MobileHeader          (mobile only)
+    │   ├── TopBar                (desktop / tablet)
+    │   ├── screen-content
+    │   │   ├── Dashboard
+    │   │   │   ├── HeroBanner
+    │   │   │   ├── StatsBar
+    │   │   │   ├── ChoreWidget
+    │   │   │   ├── WeeklyRing + WeeklyChallenge
+    │   │   │   ├── Leaderboard
+    │   │   │   ├── WeekStrip
+    │   │   │   └── RecentActivity
+    │   │   ├── CalendarView
+    │   │   ├── ClassList → ClassCard → ClassForm / RescheduleModal
+    │   │   ├── QuestBoard → QuestCard → ChoreForm
+    │   │   ├── GamesSection
+    │   │   │   ├── GamesHub
+    │   │   │   ├── MathQuest
+    │   │   │   ├── WordBuilder
+    │   │   │   ├── MemoryMatch
+    │   │   │   └── SortingSafari
+    │   │   ├── ChildrenList
+    │   │   ├── ChildProfile → BadgeGrid, PointsChart
+    │   │   ├── CostSummary
+    │   │   └── Settings → PinPad
+    │   └── BottomNav             (mobile only)
+    ├── BadgeCelebration          (z-index 10000)
+    └── ChoreEffects
+        ├── HeartCelebration
+        ├── StarCelebration
+        └── GiftMilestoneModal    (z-index 600, undismissable)
+```
 
 ---
 
-## 🎮 Reward System
-
-The chore reward chain is fully configurable in **Settings → Chore Controls**:
+## 🗂️ Project Structure
 
 ```
-Points  ──(25 default)──►  ❤️ Heart
-Heart   ──(5 default)───►  ⭐ Star
-Star    ──(5 default)───►  🎁 Gift Milestone
+kids-class-chore-tracker/
+├── public/
+│   ├── favicon.svg
+│   └── icons.svg
+├── src/
+│   ├── components/
+│   │   ├── calendar/       CalendarView
+│   │   ├── children/       ChildrenList
+│   │   ├── chores/         QuestBoard, QuestCard, ChoreForm, ChoreWidget
+│   │   │                   ChoreEffects, HeartCelebration, StarCelebration
+│   │   │                   GiftMilestoneModal, FloatingPoint, PinPad, PointsChart
+│   │   ├── classes/        ClassList, ClassForm, RescheduleModal, AttendanceLog
+│   │   ├── costs/          CostSummary
+│   │   ├── dashboard/      Dashboard, HeroBanner, StatsBar, WeekStrip, WeeklyRing
+│   │   │                   ClassCard, RecentActivity, MoodCheckIn
+│   │   ├── games/          GamesSection, GamesHub, MathQuest, WordBuilder
+│   │   │                   MemoryMatch, SortingSafari
+│   │   ├── gamification/   XPBar, BadgeGrid, BadgeCelebration, WeeklyChallenge
+│   │   │                   Leaderboard, StreakFlame, ConfettiEffect
+│   │   ├── layout/         AppShell, Sidebar, TopBar, MobileHeader, BottomNav
+│   │   ├── onboarding/     Onboarding (3-step wizard)
+│   │   ├── profile/        ChildProfile
+│   │   ├── settings/       Settings
+│   │   └── ui/             Avatar, Badge, CategoryIllustration, ConfirmDialog
+│   │                       EmptyState, Mascot, Modal, Toast, AmbientWorld
+│   ├── hooks/
+│   │   ├── useAttendance.ts     streak + attendance % calculations
+│   │   ├── useCountdown.ts      live countdown to next class
+│   │   ├── useFilter.ts         class filter / search logic
+│   │   ├── useMediaQuery.ts     responsive breakpoint hooks
+│   │   ├── useNotifications.ts  browser notification scheduling
+│   │   ├── useRecurring.ts      recurring class instance generator
+│   │   └── useSound.ts          Web Audio API sound engine
+│   ├── store/
+│   │   ├── types.ts             all TypeScript types, badge defs, word lists
+│   │   └── useAppStore.ts       single Zustand store + persist middleware
+│   ├── styles/
+│   │   ├── index.css            CSS variables, tokens, layout, dark mode
+│   │   ├── components.css       all component styles
+│   │   └── animations.css       80+ @keyframe animations
+│   └── utils/
+│       ├── colorUtils.ts
+│       └── dateUtils.ts
+├── index.html
+├── package.json
+├── tsconfig.json
+├── tsconfig.app.json    ← set noUnusedLocals/Params: false for Vercel
+├── tsconfig.node.json
+├── vite.config.ts
+└── README.md
 ```
-
-### Gift Milestone Flow
-1. **Star count hits threshold** → undismissable 🎁 Gift popup appears
-2. Parent can **"Remind me later"** → snoozes 1 hour, re-appears automatically
-3. Parent taps **"Claim Gift"** → optional PIN → adds a gift note ("Trip to the movies! 🎬")
-4. Gift is marked claimed and saved to the child's **Reward History** on their profile
-
-### Negative Points
-- Points can go below 0 (e.g. for behaviour records)
-- Hearts and Stars earned are **permanent** — undoing a chore only reverses raw points
-- Kids earn their way back by doing positive chores
 
 ---
 
-## 🎨 Design System
+## 🔧 Tech Stack
 
-- **Font**: [Nunito](https://fonts.google.com/specimen/Nunito) (headings/UI) + [Inter](https://fonts.google.com/specimen/Inter) (body)
-- **Colour palette**: Vivid violet accent (`#7C3AED`) with semantic green/red/amber/pink
-- **Border radii**: `--r-sm` → `--r-2xl` design tokens
-- **Shadows**: 4-level shadow system (`--shadow-sm` → `--shadow-xl`)
-- **Animations**: Spring-physics easing, confetti, floating particles, mascot dance
-- **Dark mode**: Automatic via `data-theme="dark"` on `<html>` — all colors swap via CSS variables, no class toggling
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| **Framework** | React 19 | Concurrent features |
+| **Language** | TypeScript 6 | `strict: false` for Vercel build compat |
+| **Build tool** | Vite 5 | Sub-second HMR |
+| **State** | Zustand 5 + persist | Single store, localStorage, v1→v5 migration |
+| **Styling** | Vanilla CSS | CSS variables, no Tailwind, `data-theme` dark mode |
+| **Icons** | Lucide React 1.8 | Tree-shakeable SVG icons |
+| **Dates** | date-fns 4 | Lightweight, tree-shakeable |
+| **Sound** | Web Audio API | All synthesized — zero audio files |
+| **Charts** | Pure SVG | Hand-drawn 30-day bar chart |
+| **PDF/image export** | jsPDF + html2canvas | Client-side only |
+| **Animations** | CSS @keyframes | 80+ keyframes, reduced-motion safe |
 
 ---
 
-## 🔒 Privacy
+## 🔐 Parent Controls
 
-All data is stored **only in your browser** using `localStorage`. Nothing is sent to any server. Use **Settings → Export Data** to download a JSON backup at any time. Use **Settings → Reset All Data** to start fresh.
+All controls in **Settings → Chore Controls**:
+
+- **Kids self-mark toggle** — off = PIN required for every chore completion
+- **Parent PIN** — 4-digit PIN for completions, gift claiming, and settings changes
+- **Celebration animations** — toggle heart / star / gift overlays
+- **Ambient world** — toggle background clouds, stars, animals, collectibles
+- **Sound toggles** — separate controls for celebrations, correct answers, wrong answers
+- **Reward thresholds** — customise pts/heart, hearts/star, stars/gift
+- **Family weekly report** — inline points summary per child
+- **Export** — full JSON backup download
+- **Reset all** — wipe everything with a confirmation step
+
+---
+
+## 🌙 Themes
+
+| Theme | How | Description |
+|-------|-----|-------------|
+| ☀️ Light | Default / toggle | Bright violet accent, pastel backgrounds |
+| 🌙 Dark | Settings toggle | Deep purple darks, same vivid accents |
+| ⭐ Night | Auto after 7 pm | Quest Board + AmbientWorld shift to starry sky |
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Cloud sync and multi-device support
+- [ ] Separate parent and child login modes
+- [ ] PWA with push notifications
+- [ ] More mini-games (spelling, science trivia)
+- [ ] Printable weekly schedule PDF
+- [ ] Teacher / instructor messaging
+- [ ] Apple Watch companion
 
 ---
 
@@ -252,12 +414,9 @@ All data is stored **only in your browser** using `localStorage`. Nothing is sen
 Pull requests are welcome! For major changes please open an issue first.
 
 ```bash
-# Fork & clone, then:
 npm install
 npm run dev
-
-# Type-check before committing:
-npx tsc --noEmit
+npm run build   # verify build passes before opening a PR
 ```
 
 ---
