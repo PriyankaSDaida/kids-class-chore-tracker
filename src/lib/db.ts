@@ -1,6 +1,10 @@
 import { supabase } from './supabase';
 import { getDeviceId } from './deviceId';
 import { useAuthStore } from '../store/useAuthStore';
+import type { 
+  Child, ClassSession, AttendanceRecord, Chore, 
+  ChoreCompletion, RewardMilestone, ShopPurchase 
+} from '../store/types';
 
 // If Supabase is not configured, all db calls silently do nothing.
 // The app still works 100% via localStorage persist.
@@ -116,17 +120,26 @@ export const db = {
   },
 
   // ── Load everything for this device at startup ──────────────────────────────
-  loadAll: async () => {
+  loadAll: async (): Promise<{
+    children: Child[];
+    classes: ClassSession[];
+    attendance: AttendanceRecord[];
+    chores: Chore[];
+    completions: ChoreCompletion[];
+    milestones: RewardMilestone[];
+    shopPurchases: ShopPurchase[];
+    settings: any;
+  } | null> => {
     if (!isReady()) return null;
     const [children, classes, attendance, chores, completions, milestones, shopPurchases, settingsRes] =
       await Promise.all([
-        fetchAll('children'),
-        fetchAll('classes'),
-        fetchAll('attendance_records'),
-        fetchAll('chores'),
-        fetchAll('chore_completions'),
-        fetchAll('reward_milestones'),
-        fetchAll('shop_purchases'),
+        fetchAll<Child>('children'),
+        fetchAll<ClassSession>('classes'),
+        fetchAll<AttendanceRecord>('attendance_records'),
+        fetchAll<Chore>('chores'),
+        fetchAll<ChoreCompletion>('chore_completions'),
+        fetchAll<RewardMilestone>('reward_milestones'),
+        fetchAll<ShopPurchase>('shop_purchases'),
         supabase!
           .from('app_settings')
           .select('data')

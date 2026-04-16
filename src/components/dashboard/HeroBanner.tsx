@@ -55,11 +55,10 @@ const HeroBanner: React.FC = () => {
       else break;
     }
   }
-
-  const todayMood = activeChild?.moodLog.find(m => m.date === today)?.emoji;
+  const todayMood = activeChild?.moodLog.find(m => m.date === today)?.mood;
 
   const handleMoodClick = (m: string) => {
-    if (activeChild) addMoodEntry(activeChild.id, { date: today, emoji: m });
+    if (activeChild) addMoodEntry(activeChild.id, { id: crypto.randomUUID(), classId: 'daily', date: today, mood: m as any });
   };
 
   return (

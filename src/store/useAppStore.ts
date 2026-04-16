@@ -215,16 +215,7 @@ export const useAppStore = create<AppState>()(
         if (get()._isSyncing) return;
         set({ _isSyncing: true });
         try {
-          const data = await db.loadAll() as {
-            children:    Child[];
-            classes:     ClassSession[];
-            attendance:  AttendanceRecord[];
-            chores:      Chore[];
-            completions: ChoreCompletion[];
-            milestones:  RewardMilestone[];
-            settings:    AppState | null;
-            shopPurchases: ShopPurchase[];
-          } | null;
+          const data = await db.loadAll();
           if (!data) return;
           const s = get();
           set({
