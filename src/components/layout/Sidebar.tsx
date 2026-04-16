@@ -2,11 +2,24 @@
 import React from 'react';
 import {
   Home, Calendar, List, Users, DollarSign,
-  Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Plus, Swords, Gamepad2, ShoppingBag
+  Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Plus, Swords, Gamepad2, ShoppingBag, LogOut
 } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useAppStore } from '../../store/useAppStore';
 import { getLevel } from '../../store/types';
-import type { Screen } from '../../store/types';
+import type { Screen, Chore } from '../../store/types';
+import { todayStr } from '../../utils/dateUtils';
+
+const showsToday = (chore: Chore): boolean => {
+  const dow = new Date().getDay();
+  const createdDow = new Date(chore.createdAt).getDay();
+  switch (chore.recurrence) {
+    case 'daily':    return true;
+    case 'weekdays': return dow >= 1 && dow <= 5;
+    case 'weekly':   return dow === createdDow;
+    case 'once':     return true;
+  }
+};
 
 const NAV_ITEMS: { id: Screen; icon: React.ElementType; label: string; badge?: string }[] = [
   { id: 'dashboard', icon: Home,          label: 'Dashboard'    },
@@ -25,13 +38,26 @@ const Sidebar: React.FC = () => {
     children, activeScreen, setScreen,
     activeChildFilter, setActiveChildFilter,
     theme, toggleTheme, soundEnabled, setSoundEnabled,
+    chores, choreCompletions
   } = useAppStore();
+
+  const [hasSeenV2, setHasSeenV2] = React.useState(() => localStorage.getItem('seen-version-v2') === 'true');
 
   // Game token count for active child
   const activeChild = children.find((c) => c.id === activeChildFilter) || children[0];
   const tokens = activeChild?.gameTokens ?? 0;
 
-  const handleNav = (id: Screen) => setScreen(id);
+  const today = todayStr();
+
+  const handleNav = (id: Screen) => {
+    setScreen(id);
+    if (id === 'settings' && !hasSeenV2) {
+      localStorage.setItem('seen-version-v2', 'true');
+      setHasSeenV2(true);
+    }
+  };
+
+  const activeNavIndex = NAV_ITEMS.findIndex(item => item.id === activeScreen || (item.id === 'children' && activeScreen === 'profile'));
 
   return (
     <aside className="sidebar" role="navigation" aria-label="Main navigation">
@@ -59,32 +85,43 @@ const Sidebar: React.FC = () => {
           <span className="sidebar-label">All Kids</span>
         </button>
 
-        {children.map((child) => (
-          <button
-            key={child.id}
-            className={`sidebar-child-btn ${activeChildFilter === child.id ? 'active' : ''}`}
-            onClick={() => setActiveChildFilter(activeChildFilter === child.id ? '' : child.id)}
-            id={`sidebar-child-${child.id}`}
-          >
-            <div style={{
-              width:26, height:26, borderRadius:'50%',
-              background:child.color, display:'flex',
-              alignItems:'center', justifyContent:'center',
-              fontSize:'0.82rem', flexShrink:0,
-            }}>
-              {child.avatarEmoji}
-            </div>
-            <div className="sidebar-label" style={{ minWidth:0, flex:1, textAlign:'left' }}>
-              <div style={{ fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                {child.name} {child.favoriteEmoji}
+        {children.map((child) => {
+          const hasPendingChores = chores.some(c => 
+            c.isActive && showsToday(c) && 
+            (c.assignedChildId === 'all' || c.assignedChildId === child.id) && 
+            !choreCompletions.some(cc => cc.choreId === c.id && cc.childId === child.id && (c.recurrence === 'once' ? true : cc.date === today))
+          );
+          
+          return (
+            <button
+              key={child.id}
+              className={`sidebar-child-btn ${activeChildFilter === child.id ? 'active' : ''}`}
+              onClick={() => setActiveChildFilter(activeChildFilter === child.id ? '' : child.id)}
+              id={`sidebar-child-${child.id}`}
+              title={child.name}
+            >
+              <div style={{
+                width:26, height:26, borderRadius:'50%',
+                background:child.color, display:'flex',
+                alignItems:'center', justifyContent:'center',
+                fontSize:'0.82rem', flexShrink:0,
+                boxShadow: hasPendingChores ? `0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--accent)` : 'none',
+                animation: hasPendingChores ? 'pulseGlow 2s infinite' : 'none'
+              }}>
+                {child.avatarEmoji}
               </div>
-              <div style={{ fontSize:'0.6rem', color:'var(--text-muted)', fontWeight:600 }}>
-                Lv.{getLevel(child.xp)} · {child.xp} XP
-                {(child.gameTokens ?? 0) > 0 && ` · 🎮 ${child.gameTokens}`}
+              <div className="sidebar-label" style={{ minWidth:0, flex:1, textAlign:'left' }}>
+                <div style={{ fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  {child.name} {child.favoriteEmoji}
+                </div>
+                <div style={{ fontSize:'0.6rem', color:'var(--text-muted)', fontWeight:600 }}>
+                  Lv.{getLevel(child.xp)} · {child.xp} XP
+                  {(child.gameTokens ?? 0) > 0 && ` · 🎮 ${child.gameTokens}`}
+                </div>
               </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
 
         <button
           className="sidebar-child-btn"
@@ -108,8 +145,22 @@ const Sidebar: React.FC = () => {
       {/* ── Navigation ── */}
       <div className="sidebar-section" style={{ paddingTop:8 }}>
         <div className="sidebar-section-label">Navigate</div>
-        <nav className="sidebar-nav">
-          {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
+        <nav className="sidebar-nav" style={{ position: 'relative' }}>
+          
+          {/* Sliding indicator */}
+          {activeNavIndex !== -1 && (
+            <div 
+              style={{
+                position: 'absolute', left: 4, width: 4, height: 26, 
+                background: 'var(--accent)', borderRadius: 4, zIndex: 10,
+                transform: `translateY(${activeNavIndex * 44 + 8}px)`,
+                transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                pointerEvents: 'none'
+              }}
+            />
+          )}
+
+          {NAV_ITEMS.map(({ id, icon: Icon, label }, index) => {
             const isActive = activeScreen === id ||
               (id === 'children' && activeScreen === 'profile');
             // Show token badge on Games nav item
@@ -122,6 +173,7 @@ const Sidebar: React.FC = () => {
                 id={`sidebar-nav-${id}`}
                 aria-current={isActive ? 'page' : undefined}
                 style={{ position: 'relative' }}
+                title={label}
               >
                 <Icon size={18} strokeWidth={isActive ? 2.5 : 1.8}/>
                 <span className="sidebar-label">{label}</span>
@@ -133,6 +185,12 @@ const Sidebar: React.FC = () => {
                     {tokens}
                   </span>
                 )}
+                {id === 'settings' && !hasSeenV2 && (
+                  <span style={{
+                    position: 'absolute', top: 12, right: 16, width: 8, height: 8,
+                    background: 'var(--red)', borderRadius: '50%', border: '2px solid var(--bg-secondary)'
+                  }} />
+                )}
               </button>
             );
           })}
@@ -141,7 +199,18 @@ const Sidebar: React.FC = () => {
 
       <div style={{ flex:1 }}/>
 
-      {/* ── Footer: sound + theme ── */}
+      {/* ── Footer: Switch User + sound + theme ── */}
+      <div style={{ padding: '0 16px', paddingBottom: 10 }}>
+        <button 
+          className="btn btn-ghost" 
+          style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--text-muted)', padding: '8px 12px' }} 
+          onClick={() => useAuthStore.getState().signOut()}
+        >
+          <LogOut size={18} />
+          <span className="sidebar-label" style={{ marginLeft: 10 }}>Switch User</span>
+        </button>
+      </div>
+
       <div className="sidebar-footer">
         <button
           className="btn btn-ghost btn-icon btn-sm"

@@ -67,11 +67,12 @@ const ClassCard: React.FC<ClassCardProps> = ({ cls }) => {
     Academic: '#10B981', Dance: '#EC4899', Other: '#64748B',
   };
   const borderColor = categoryColors[cls.category] || 'var(--accent)';
+  const isPulse = isActive && countdown.isUrgent && !countdown.isStarted;
 
   return (
     <>
       <div
-        className={`class-card cat-${cls.category} status-${cls.status} ${bouncing ? 'card-bounce' : ''}`}
+        className={`class-card cat-${cls.category} status-${cls.status} ${bouncing ? 'card-bounce' : ''} ${isPulse ? 'pulse-border' : ''}`}
       >
         {/* Header row */}
         <div className="class-card-header">

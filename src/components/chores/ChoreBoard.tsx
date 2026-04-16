@@ -280,6 +280,27 @@ const QuestBoard: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
+          {/* ── Combo Streak Banner ── */}
+          {doneToday >= 2 && pending.length > 0 && (
+            <div style={{
+              background: 'linear-gradient(135deg, #F59E0B, #EA580C)',
+              borderRadius: 'var(--r-xl)', padding: '12px 20px',
+              color: '#fff', display: 'flex', alignItems: 'center', gap: 12,
+              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+              animation: 'slideDown 0.4s var(--ease-spring) both'
+            }}>
+              <div style={{ fontSize: '2rem', animation: 'flameFlicker 0.9s infinite' }}>🔥</div>
+              <div>
+                <h3 style={{ margin: 0, fontWeight: 900, fontFamily: 'Nunito, sans-serif', fontSize: '1.05rem', lineHeight: 1.2 }}>
+                  {doneToday} Combo Streak!
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, opacity: 0.9 }}>
+                  You are unstoppable! Keep it going!
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ── Golden Quests section ── */}
           {positiveQuests.length > 0 && (
             <section>

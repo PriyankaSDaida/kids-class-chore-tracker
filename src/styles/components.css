@@ -237,7 +237,8 @@
   background: var(--bg-overlay); z-index: 200;
   display: flex; align-items: flex-end; justify-content: center;
   animation: fadeIn 0.2s var(--ease) both;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .modal-panel {
   background: var(--bg-secondary);
@@ -457,8 +458,9 @@
   background:linear-gradient(135deg,var(--accent),var(--accent-dark)); color:#fff;
   border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
   box-shadow:0 6px 24px var(--accent-glow); transition:all 0.22s var(--ease-spring); z-index:99;
+  animation: pulseGlow 2.5s infinite var(--ease-in-out);
 }
-.fab:hover { transform:scale(1.1) translateY(-2px); }
+.fab:hover { transform:scale(1.1) translateY(-2px); animation: none; }
 .fab:active { transform:scale(0.93); }
 /* Desktop FAB sits differently — no bottom nav */
 @media (min-width: 768px) { .fab { bottom: 24px; right: 32px; } }

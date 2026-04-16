@@ -9,6 +9,16 @@ import PinPad from './PinPad';
 import type { Chore } from '../../store/types';
 import { format, subDays } from 'date-fns';
 
+const FUN_FACTS = [
+  "Doing chores builds strong muscles and a big brain! 🧠 💪",
+  "Helping out at home makes you a real-life superhero! 🦸",
+  "Kids who do chores learn to manage time and money better! ⏳ 💸",
+  "Keeping things tidy keeps sneaky bugs away! 🐜 🚫",
+  "You get secretly stronger every time you pick things up! 🏋️‍♂️",
+  "Completing tasks makes your brain release 'happy juice' (dopamine)! 🥳",
+  "A cleaner space helps you think clearer and play better! 🎮 ✨"
+];
+
 interface Props {
   chore:    Chore;
   childId:  string;
@@ -197,10 +207,12 @@ const QuestCard: React.FC<Props> = ({ chore, childId, date, onEdit, style }) => 
 
                 {/* Category + streak row */}
                 <div style={{ display: 'flex', gap: 5, marginTop: 5, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{
+                  <span 
+                    title={FUN_FACTS[chore.id.charCodeAt(0) % FUN_FACTS.length]}
+                    style={{
                     fontSize: '0.62rem', color: catCfg.color, fontWeight: 800,
                     background: catCfg.bg, padding: '2px 7px', borderRadius: 999,
-                    border: `1px solid ${catCfg.color}33`,
+                    border: `1px solid ${catCfg.color}33`, cursor: 'help'
                   }}>
                     {catCfg.emoji} {chore.category}
                   </span>

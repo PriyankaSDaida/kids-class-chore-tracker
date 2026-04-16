@@ -1,7 +1,8 @@
 // ─── MobileHeader — Mobile-Only App Bar (replaces old Header.tsx) ─────────────
 import React from 'react';
-import { Moon, Sun, Volume2, VolumeX } from 'lucide-react';
+import { Moon, Sun, Volume2, VolumeX, LogOut } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const MobileHeader: React.FC = () => {
   const {
@@ -26,6 +27,10 @@ const MobileHeader: React.FC = () => {
           <button className="btn btn-ghost btn-icon btn-sm"
             onClick={toggleTheme} id="mobile-theme">
             {theme === 'dark' ? <Sun size={17}/> : <Moon size={17}/>}
+          </button>
+          <button className="btn btn-ghost btn-icon btn-sm"
+            onClick={() => useAuthStore.getState().signOut()} id="mobile-logout">
+            <LogOut size={17}/>
           </button>
         </div>
       </div>

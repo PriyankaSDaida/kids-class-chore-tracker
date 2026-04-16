@@ -15,6 +15,11 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes bgPan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -31,11 +36,23 @@
 }
 
 /* ── Card bounce on tap ──────────────────────────────────────────────────────── */
-@keyframes cardBounce {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(0.96); }
-  80%  { transform: scale(1.02); }
-  100% { transform: scale(1); }
+@keyframes questComplete {
+  0%   { transform: perspective(1000px) rotateX(0deg) scale(1); }
+  40%  { transform: perspective(1000px) rotateX(180deg) scale(1.1); filter: brightness(1.2); }
+  100% { transform: perspective(1000px) rotateX(360deg) scale(1); opacity: 0.65; }
+}
+
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(15deg); }
+  40% { transform: rotate(-15deg); }
+  60% { transform: rotate(10deg); }
+  80% { transform: rotate(-10deg); }
+}
+.bell-shake {
+  transform-origin: top center;
+  animation: bellShake 1.5s infinite ease-in-out;
+  display: inline-block;
 }
 
 /* ── XP fill animation ──────────────────────────────────────────────────────── */
@@ -50,6 +67,33 @@
   50%  { transform: scale(0.96) rotate(-1deg) translateY(1px); filter: hue-rotate(10deg); }
   75%  { transform: scale(1.05) rotate(3deg) translateY(-1px); }
   100% { transform: scale(1) rotate(-3deg) translateY(0); filter: hue-rotate(0deg); }
+}
+
+/* ── Bar shimmer ────────────────────────────────────────────────────────────── */
+@keyframes shimmerSweep {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(200%) skewX(-20deg); }
+}
+.widget-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.widget-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  animation: shimmerSweep 3s infinite;
+}
+
+/* ── Class Card Pulse ───────────────────────────────────────────────────────── */
+@keyframes pulseLeftBorder {
+  0%, 100% { border-left-color: rgba(239, 68, 68, 1); box-shadow: -4px 0 12px rgba(239, 68, 68, 0.2); }
+  50% { border-left-color: rgba(239, 68, 68, 0.3); box-shadow: -2px 0 6px rgba(239, 68, 68, 0.05); }
+}
+.pulse-border {
+  border-left-width: 4px !important;
+  animation: pulseLeftBorder 2s ease-in-out infinite;
 }
 
 /* ── Badge celebration pop ───────────────────────────────────────────────────── */

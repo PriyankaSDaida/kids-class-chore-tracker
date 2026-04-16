@@ -87,8 +87,8 @@ const ChoreWidget: React.FC = () => {
       </div>
 
       {/* Progress bar to next heart */}
-      <div className="points-bar-track" style={{ marginBottom:4 }}>
-        <div className="points-bar-fill" style={{ width:`${pct * 100}%` }}/>
+      <div className="points-bar-track" style={{ marginBottom:4, position: 'relative', overflow: 'hidden' }}>
+        <div className="points-bar-fill widget-shimmer" style={{ width:`${pct * 100}%`, transition: 'width 0.9s var(--ease-spring)' }}/>
       </div>
       <div style={{ fontSize:'0.68rem', color:'var(--text-muted)', marginBottom:12, fontWeight:600 }}>
         {ptsLeft > 0
