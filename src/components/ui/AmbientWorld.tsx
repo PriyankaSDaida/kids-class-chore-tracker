@@ -21,28 +21,18 @@ interface Animal {
   duration: number;
 }
 
-function isNightTime() {
-  const h = new Date().getHours();
-  return h >= 19 || h < 6;
-}
 
 const COLLECTIBLES = ['⭐', '🪙', '❤️', '💎', '🍀'];
 const ANIMALS      = ['🦋', '🐦', '🐇', '🐝', '🦎'];
 
 const AmbientWorld: React.FC = () => {
-  const { choreSettings, children, activeChildFilter } = useAppStore();
+  const { choreSettings, children, activeChildFilter, theme } = useAppStore();
   const { backgroundAnimations } = choreSettings;
 
-  const [night,   setNight]   = useState(isNightTime());
+  const night = theme === 'dark';
   const [items,   setItems]   = useState<Collectible[]>([]);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [bonuses, setBonuses] = useState<{ id: number; x: number; y: number }[]>([]);
-
-  // Re-check day/night every minute
-  useEffect(() => {
-    const t = setInterval(() => setNight(isNightTime()), 60_000);
-    return () => clearInterval(t);
-  }, []);
 
   // Spawn collectibles periodically
   useEffect(() => {

@@ -72,7 +72,6 @@ const ClassCard: React.FC<ClassCardProps> = ({ cls }) => {
     <>
       <div
         className={`class-card cat-${cls.category} status-${cls.status} ${bouncing ? 'card-bounce' : ''}`}
-        style={{ borderLeft:`4px solid ${borderColor}` }}
       >
         {/* Header row */}
         <div className="class-card-header">
@@ -126,29 +125,27 @@ const ClassCard: React.FC<ClassCardProps> = ({ cls }) => {
         {isActive && (
           <div className="class-card-actions">
             <button className="btn btn-primary btn-sm"
-              onClick={handleAttend} id={`btn-attend-${cls.id}`} style={{ flex:1 }}>
+              onClick={handleAttend} id={`btn-attend-${cls.id}`} style={{ flex:1, fontSize: '0.9rem', padding: '10px' }}>
               ✅ Mark Done
             </button>
-            <button className="btn btn-secondary btn-sm"
-              onClick={() => markMissed(cls.id)} id={`btn-miss-${cls.id}`}>
-              ❌
-            </button>
-            <button className="btn btn-ghost btn-icon btn-sm"
-              onClick={() => setShowReschedule(true)} title="Reschedule" id={`btn-reschedule-${cls.id}`}>
-              <RefreshCw size={14}/>
-            </button>
-            <button className="btn btn-ghost btn-icon btn-sm"
-              onClick={() => setShowEdit(true)} title="Edit" id={`btn-edit-${cls.id}`}>
-              <Edit size={14}/>
-            </button>
-            <button className="btn btn-ghost btn-icon btn-sm"
-              onClick={() => setShowCancel(true)} title="Cancel class" id={`btn-cancel-${cls.id}`}>
-              <X size={14}/>
-            </button>
-            <button className="btn btn-ghost btn-icon btn-sm" style={{ color:'var(--red)' }}
-              onClick={() => setShowDelete(true)} title="Delete" id={`btn-delete-${cls.id}`}>
-              <Trash2 size={14}/>
-            </button>
+            <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-tertiary)', borderRadius: 'var(--r-md)', padding: '4px' }}>
+              <button className="btn btn-ghost btn-icon btn-sm"
+                onClick={() => markMissed(cls.id)} title="Miss class" id={`btn-miss-${cls.id}`}>
+                ❌
+              </button>
+              <button className="btn btn-ghost btn-icon btn-sm"
+                onClick={() => setShowReschedule(true)} title="Reschedule" id={`btn-reschedule-${cls.id}`}>
+                <RefreshCw size={15}/>
+              </button>
+              <button className="btn btn-ghost btn-icon btn-sm"
+                onClick={() => setShowEdit(true)} title="Edit" id={`btn-edit-${cls.id}`}>
+                <Edit size={15}/>
+              </button>
+              <button className="btn btn-ghost btn-icon btn-sm" style={{ color:'var(--red)' }}
+                onClick={() => setShowCancel(true)} title="Cancel class" id={`btn-cancel-${cls.id}`}>
+                <X size={15}/>
+              </button>
+            </div>
           </div>
         )}
 

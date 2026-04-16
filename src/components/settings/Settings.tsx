@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useToast } from '../ui/Toast';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import PinPad from '../chores/PinPad';
@@ -32,10 +33,12 @@ const Settings: React.FC = () => {
     choreSettings, updateChoreSettings,
     children, choreCompletions,
   } = useAppStore();
+  const { user, signOut } = useAuthStore();
   const { showToast } = useToast();
   const [showReset,  setShowReset]  = useState(false);
   const [pinStep,    setPinStep]    = useState<PinStep>('idle');
   const [newPinTemp, setNewPinTemp] = useState('');
+  const [notifPerm,  setNotifPerm]  = useState(typeof Notification !== 'undefined' ? Notification.permission : 'default');
 
   const handleExport = () => {
     try {
@@ -86,6 +89,35 @@ const Settings: React.FC = () => {
         </p>
       </div>
 
+      {/* ── Account ── */}
+      {user && (
+        <>
+          <SectionTitle>Account</SectionTitle>
+          <div className="settings-group" style={{ marginBottom:20 }}>
+            <div className="settings-row">
+              <div>
+                <div className="settings-label">Signed in as</div>
+                <div className="settings-desc" style={{ wordBreak: 'break-all' }}>{user.email}</div>
+              </div>
+              <button 
+                className="btn btn-secondary btn-sm" 
+                onClick={async () => {
+                  try {
+                    await signOut();
+                    showToast('Signed out successfully!', 'info');
+                  } catch {
+                    showToast('Failed to sign out', 'error');
+                  }
+                }} 
+                id="settings-sign-out"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ── Appearance ── */}
       <SectionTitle>Appearance</SectionTitle>
       <div className="settings-group" style={{ marginBottom:20 }}>
@@ -97,6 +129,32 @@ const Settings: React.FC = () => {
           <button className="btn btn-secondary btn-sm" onClick={toggleTheme} id="settings-theme-btn">
             {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
+        </div>
+      </div>
+
+      {/* ── Notifications ── */}
+      <SectionTitle>Notifications</SectionTitle>
+      <div className="settings-group" style={{ marginBottom:20 }}>
+        <div className="settings-row">
+          <div>
+            <div className="settings-label">Push Notifications</div>
+            <div className="settings-desc">Get local reminders 30 mins before classes and evening quests</div>
+          </div>
+          {notifPerm === 'granted' ? (
+            <span style={{ fontSize:'0.85rem', color:'var(--green)', fontWeight:800 }}>Enabled ✅</span>
+          ) : (
+            <button className="btn btn-secondary btn-sm" onClick={() => {
+              if (typeof Notification !== 'undefined') {
+                Notification.requestPermission().then(p => {
+                  setNotifPerm(p);
+                  if (p === 'granted') showToast('Notifications enabled!', 'success');
+                  else showToast('Permission denied', 'error');
+                });
+              }
+            }} id="settings-enable-notifs">
+              Enable
+            </button>
+          )}
         </div>
       </div>
 
@@ -337,9 +395,9 @@ const Settings: React.FC = () => {
         <div className="settings-row">
           <div>
             <div className="settings-label">Data Storage</div>
-            <div className="settings-desc">All data stays in your browser — nothing leaves your device</div>
+            <div className="settings-desc">Securely synced with Supabase across your devices</div>
           </div>
-          <span style={{ fontSize:'1.3rem' }}>🔒</span>
+          <span style={{ fontSize:'1.3rem' }}>☁️</span>
         </div>
       </div>
 

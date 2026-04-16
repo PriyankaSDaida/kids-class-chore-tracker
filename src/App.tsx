@@ -1,8 +1,10 @@
 // ─── App Root — Class Quest ────────────────────────────────────────────────────
 import { useEffect, type ReactElement } from 'react';
 import { useAppStore } from './store/useAppStore';
+import { useAuthStore } from './store/useAuthStore';
 
 import AppShell     from './components/layout/AppShell';
+import AuthPage     from './components/auth/AuthPage';
 import Onboarding   from './components/onboarding/Onboarding';
 import Dashboard    from './components/dashboard/Dashboard';
 import CalendarView from './components/calendar/CalendarView';
@@ -12,6 +14,7 @@ import CostSummary  from './components/costs/CostSummary';
 import ChildProfile from './components/profile/ChildProfile';
 import Settings     from './components/settings/Settings';
 import ChoreBoard   from './components/chores/ChoreBoard';
+import ShopBoard    from './components/shop/ShopBoard';
 import { ToastProvider } from './components/ui/Toast';
 import GamesSection from './components/games/GamesSection';
 
@@ -21,6 +24,11 @@ import './styles/components.css';
 
 function App() {
   const { onboardingComplete, activeScreen, theme, _hasHydrated, loadFromDB } = useAppStore();
+  const { user, isInitializing, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   // Apply theme to <html> element
   useEffect(() => {
@@ -36,9 +44,9 @@ function App() {
     }
   }, [_hasHydrated, loadFromDB]);
 
-  // Show a minimal loading state while localStorage is being read.
+  // Show a minimal loading state while localStorage is being read or auth checks.
   // This prevents a flash of empty state that could overwrite good data.
-  if (!_hasHydrated) {
+  if (!_hasHydrated || isInitializing) {
     return (
       <div
         data-theme={theme}
@@ -54,6 +62,15 @@ function App() {
       >
         🦁
       </div>
+    );
+  }
+
+  // Mandatory Authentication
+  if (!user) {
+    return (
+      <ToastProvider>
+        <div data-theme={theme}><AuthPage /></div>
+      </ToastProvider>
     );
   }
 
@@ -76,6 +93,7 @@ function App() {
     profile:   <ChildProfile />,
     settings:  <Settings />,
     chores:    <ChoreBoard />,
+    shop:      <ShopBoard />,
     games:     <GamesSection />,
   };
 

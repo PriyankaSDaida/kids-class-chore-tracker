@@ -4,7 +4,7 @@ import type {
   Child, ClassSession, AttendanceRecord, Theme, Screen,
   FilterState, ClassStatus, BadgeId, MoodEntry, ClassReaction,
   AppNotification, Chore, ChoreCompletion, RewardMilestone,
-  ChoreSettings, RewardMilestoneType,
+  ChoreSettings, RewardMilestoneType, ShopItem, ShopPurchase
 } from './types';
 import { XP_PER_ATTEND, getLevel, DEFAULT_CHORE_SETTINGS } from './types';
 import { db } from '../lib/db';
@@ -69,6 +69,8 @@ interface AppState {
   choreCompletions: ChoreCompletion[];
   rewardMilestones: RewardMilestone[];
   choreSettings: ChoreSettings;
+  shopItems: ShopItem[];
+  shopPurchases: ShopPurchase[];
 
   // Filters
   filter: FilterState;
@@ -130,6 +132,12 @@ interface AppState {
   claimGift:           (childId: string, giftNote: string) => void;
   updateChoreSettings: (u: Partial<ChoreSettings>) => void;
 
+  // Shop
+  addShopItem:     (i: ShopItem) => void;
+  deleteShopItem:  (id: string) => void;
+  buyShopItem:     (childId: string, itemId: string) => boolean;
+  fulfillPurchase: (purchaseId: string) => void;
+
   // Games
   addToWordCollection: (childId: string, word: string) => void;
   awardXP:             (childId: string, xp: number) => void;
@@ -142,6 +150,12 @@ interface AppState {
 const defaultFilter: FilterState = {
   childId:'', category:'', status:'', searchQuery:'', dateFrom:'', dateTo:'',
 };
+
+const defaultShopItems: ShopItem[] = [
+  { id: 'item-1', name: 'Extra Screen Time', cost: 150, type: 'points', icon: '📺' },
+  { id: 'item-2', name: 'Pizza Night', cost: 500, type: 'points', icon: '🍕' },
+  { id: 'item-3', name: '$5 Robux', cost: 10, type: 'tokens', icon: '💎' },
+];
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 export const useAppStore = create<AppState>()(
@@ -156,6 +170,7 @@ export const useAppStore = create<AppState>()(
       children:[], classes:[], attendanceRecords:[],
       notifications:[], chores:[], choreCompletions:[], rewardMilestones:[],
       choreSettings: DEFAULT_CHORE_SETTINGS,
+      shopItems: defaultShopItems, shopPurchases: [],
       filter:defaultFilter, activeChildFilter:'',
 
       // ── UI ──────────────────────────────────────────────────────────────────
@@ -208,6 +223,7 @@ export const useAppStore = create<AppState>()(
             completions: ChoreCompletion[];
             milestones:  RewardMilestone[];
             settings:    AppState | null;
+            shopPurchases: ShopPurchase[];
           } | null;
           if (!data) return;
           const s = get();
@@ -218,6 +234,7 @@ export const useAppStore = create<AppState>()(
             chores:            data.chores.length      > 0 ? data.chores      : s.chores,
             choreCompletions:  data.completions.length > 0 ? data.completions : s.choreCompletions,
             rewardMilestones:  data.milestones.length  > 0 ? data.milestones  : s.rewardMilestones,
+            shopPurchases:     data.shopPurchases.length > 0 ? data.shopPurchases : s.shopPurchases,
             // Merge settings if they exist in DB
             ...(data.settings
               ? {
@@ -225,6 +242,7 @@ export const useAppStore = create<AppState>()(
                   onboardingComplete:(data.settings as AppState).onboardingComplete ?? s.onboardingComplete,
                   soundEnabled:     (data.settings as AppState).soundEnabled     ?? s.soundEnabled,
                   choreSettings:    (data.settings as AppState).choreSettings    ?? s.choreSettings,
+                  shopItems:        (data.settings as AppState).shopItems        ?? s.shopItems,
                 }
               : {}),
           });
@@ -555,6 +573,65 @@ export const useAppStore = create<AppState>()(
         db.settings.save({ ...get(), choreSettings: get().choreSettings });
       },
 
+      // ── Shop ─────────────────────────────────────────────────────────────────
+      addShopItem: (item) => {
+        set((s) => {
+          const items = [...s.shopItems, item];
+          db.settings.save({ ...get(), shopItems: items });
+          return { shopItems: items };
+        });
+      },
+      deleteShopItem: (id) => {
+        set((s) => {
+          const items = s.shopItems.filter((i) => i.id !== id);
+          db.settings.save({ ...get(), shopItems: items });
+          return { shopItems: items };
+        });
+      },
+      buyShopItem: (childId, itemId) => {
+        let success = false;
+        set((s) => {
+          const child = s.children.find((c) => c.id === childId);
+          const item  = s.shopItems.find((i) => i.id === itemId);
+          if (!child || !item) return s;
+
+          if (item.type === 'points' && child.points < item.cost) return s;
+          if (item.type === 'tokens' && (child.gameTokens ?? 0) < item.cost) return s;
+
+          const updatedChild = { ...child };
+          if (item.type === 'points') updatedChild.points -= item.cost;
+          if (item.type === 'tokens') updatedChild.gameTokens = (child.gameTokens ?? 0) - item.cost;
+
+          const purchase: ShopPurchase = {
+            id: crypto.randomUUID(),
+            childId, itemId, cost: item.cost, type: item.type,
+            date: new Date().toISOString(),
+            isFulfilled: false, fulfilledAt: ''
+          };
+
+          success = true;
+          db.children.upsert(updatedChild);
+          db.shopPurchases.upsert(purchase);
+
+          return {
+            children: s.children.map((c) => c.id === childId ? updatedChild : c),
+            shopPurchases: [...s.shopPurchases, purchase],
+          };
+        });
+        return success;
+      },
+      fulfillPurchase: (pid) => {
+        set((s) => {
+          const p = s.shopPurchases.find(x => x.id === pid);
+          if (!p) return s;
+          const updated = { ...p, isFulfilled: true, fulfilledAt: new Date().toISOString() };
+          db.shopPurchases.upsert(updated);
+          return {
+            shopPurchases: s.shopPurchases.map(x => x.id === pid ? updated : x)
+          };
+        });
+      },
+
       // ── Games ────────────────────────────────────────────────────────────────
       addToWordCollection: (childId, word) => {
         set((s) => ({
@@ -590,7 +667,7 @@ export const useAppStore = create<AppState>()(
     {
       name:    'kids-class-tracker-store',
       storage: createJSONStorage(() => localStorage),
-      version: 6,
+      version: 7,
 
       // _hasHydrated and _isSyncing are runtime-only — never write to localStorage
       partialize: (state) => {
@@ -659,7 +736,16 @@ export const useAppStore = create<AppState>()(
           };
         }
 
+        if (version < 7) {
+          state = {
+            ...state,
+            shopItems: (state.shopItems as Array<unknown>) ?? defaultShopItems,
+            shopPurchases: (state.shopPurchases as Array<unknown>) ?? [],
+          }
+        }
+
         // version 6: _hasHydrated + _isSyncing added (runtime only, excluded via partialize)
+        // version 7: shopItems + shopPurchases
 
         return state as unknown as AppState;
       },

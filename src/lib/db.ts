@@ -1,10 +1,11 @@
 import { supabase } from './supabase';
 import { getDeviceId } from './deviceId';
+import { useAuthStore } from '../store/useAuthStore';
 
 // If Supabase is not configured, all db calls silently do nothing.
 // The app still works 100% via localStorage persist.
 const isReady = () => supabase !== null;
-const uid     = () => getDeviceId();
+const uid     = () => useAuthStore.getState().user?.id || getDeviceId();
 
 // ── Generic helpers ───────────────────────────────────────────────────────────
 
@@ -87,6 +88,11 @@ export const db = {
     fetchAll: <T>()                    => fetchAll<T>('reward_milestones'),
   },
 
+  shopPurchases: {
+    upsert:   (p: { id: string })     => upsertRow('shop_purchases', p.id, p),
+    fetchAll: <T>()                    => fetchAll<T>('shop_purchases'),
+  },
+
   settings: {
     save: async (data: unknown) => {
       if (!isReady()) return;
@@ -112,7 +118,7 @@ export const db = {
   // ── Load everything for this device at startup ──────────────────────────────
   loadAll: async () => {
     if (!isReady()) return null;
-    const [children, classes, attendance, chores, completions, milestones, settingsRes] =
+    const [children, classes, attendance, chores, completions, milestones, shopPurchases, settingsRes] =
       await Promise.all([
         fetchAll('children'),
         fetchAll('classes'),
@@ -120,6 +126,7 @@ export const db = {
         fetchAll('chores'),
         fetchAll('chore_completions'),
         fetchAll('reward_milestones'),
+        fetchAll('shop_purchases'),
         supabase!
           .from('app_settings')
           .select('data')
@@ -133,7 +140,24 @@ export const db = {
       chores,
       completions,
       milestones,
+      shopPurchases,
       settings: settingsRes.data?.data ?? null,
     };
+  },
+
+  // ── Sweep offline data to newly logged-in account ─────────────────────────
+  migrateLocalToCloud: async (newUserId: string) => {
+    if (!isReady()) return;
+    const oldUid = getDeviceId();
+    if (oldUid === newUserId) return;
+
+    const tables = [
+      'children', 'classes', 'attendance_records', 
+      'chores', 'chore_completions', 'reward_milestones', 'app_settings', 'shop_purchases'
+    ];
+
+    for (const t of tables) {
+      await supabase!.from(t).update({ user_id: newUserId }).eq('user_id', oldUid);
+    }
   },
 };

@@ -8,6 +8,8 @@ import BottomNav from './BottomNav';
 import BadgeCelebration from '../gamification/BadgeCelebration';
 import ChoreEffects from '../chores/ChoreEffects';
 import AmbientWorld from '../ui/AmbientWorld';
+import PwaInstallPrompt from '../ui/PwaInstallPrompt';
+import NotificationEngine from '../ui/NotificationEngine';
 
 interface Props { children: ReactNode; }
 
@@ -43,6 +45,8 @@ const AppShell: React.FC<Props> = ({ children }) => {
       {/* Global celebration overlays (appear above everything) */}
       <BadgeCelebration/>
       <ChoreEffects/>
+      <PwaInstallPrompt/>
+      <NotificationEngine/>
     </div>
   );
 };

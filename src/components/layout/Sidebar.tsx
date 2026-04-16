@@ -2,7 +2,7 @@
 import React from 'react';
 import {
   Home, Calendar, List, Users, DollarSign,
-  Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Plus, Swords, Gamepad2,
+  Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Plus, Swords, Gamepad2, ShoppingBag
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { getLevel } from '../../store/types';
@@ -14,6 +14,7 @@ const NAV_ITEMS: { id: Screen; icon: React.ElementType; label: string; badge?: s
   { id: 'classes',   icon: List,          label: 'Classes'      },
   { id: 'children',  icon: Users,         label: 'Kids'         },
   { id: 'chores',    icon: Swords,        label: 'Quest Board'  },
+  { id: 'shop',      icon: ShoppingBag,   label: 'Rewards Shop' },
   { id: 'games',     icon: Gamepad2,      label: 'Games'        },
   { id: 'costs',     icon: DollarSign,    label: 'Costs'        },
   { id: 'settings',  icon: SettingsIcon,  label: 'Settings'     },

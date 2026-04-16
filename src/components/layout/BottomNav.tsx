@@ -1,15 +1,15 @@
 // ─── BottomNav — Mobile-Only Tab Bar ──────────────────────────────────────────
 import React from 'react';
-import { Home, Calendar, List, Swords, Gamepad2 } from 'lucide-react';
+import { Home, List, Swords, Gamepad2, ShoppingBag } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useSound } from '../../hooks/useSound';
 import type { Screen } from '../../store/types';
 
 const TABS: { id: Screen; icon: React.ElementType; label: string }[] = [
   { id: 'dashboard', icon: Home,     label: 'Home'   },
-  { id: 'calendar',  icon: Calendar, label: 'Cal'    },
   { id: 'classes',   icon: List,     label: 'Classes'},
   { id: 'chores',    icon: Swords,   label: 'Quests' },
+  { id: 'shop',      icon: ShoppingBag, label: 'Shop'},
   { id: 'games',     icon: Gamepad2, label: 'Games'  },
 ];
 

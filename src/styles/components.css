@@ -395,29 +395,37 @@
    CLASS CARDS
    ════════════════════════════════════════════════════════════ */
 .class-card {
-  background:var(--bg-card); border-radius:var(--r-lg);
-  border:1.5px solid var(--border); padding:16px;
-  display:flex; flex-direction:column; gap:12px;
-  box-shadow:var(--shadow-sm);
-  transition:box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
-  position:relative; overflow:hidden;
+  background: var(--bg-card); 
+  border-radius: var(--r-xl);
+  border: 1.5px solid var(--border); 
+  padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative; overflow: hidden;
 }
-.class-card:active { animation:cardBounce 0.35s var(--ease-bounce); }
-.class-card.status-attended { opacity:0.75; }
-.class-card.status-cancelled { opacity:0.55; }
+.class-card:hover { 
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.08);
+  border-color: var(--border-hover, var(--border));
+}
+.class-card:active { transform: scale(0.98); }
+.class-card.status-attended { opacity:0.8; filter: grayscale(0.2); }
+.class-card.status-cancelled { opacity:0.5; filter: grayscale(0.8); }
 
-.class-card.cat-Sport    { background:var(--cat-Sport-bg);    border-left:4px solid #3B82F6; }
-.class-card.cat-Music    { background:var(--cat-Music-bg);    border-left:4px solid #A855F7; }
-.class-card.cat-Art      { background:var(--cat-Art-bg);      border-left:4px solid #F97316; }
-.class-card.cat-Academic { background:var(--cat-Academic-bg); border-left:4px solid #10B981; }
-.class-card.cat-Dance    { background:var(--cat-Dance-bg);    border-left:4px solid #EC4899; }
-.class-card.cat-Other    { background:var(--cat-Other-bg);    border-left:4px solid #64748B; }
+/* Accent top strips instead of full pale backgrounds */
+.class-card.cat-Sport    { border-top: 4px solid #3B82F6; }
+.class-card.cat-Music    { border-top: 4px solid #A855F7; }
+.class-card.cat-Art      { border-top: 4px solid #F97316; }
+.class-card.cat-Academic { border-top: 4px solid #10B981; }
+.class-card.cat-Dance    { border-top: 4px solid #EC4899; }
+.class-card.cat-Other    { border-top: 4px solid #64748B; }
 
-.class-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
-.class-name        { font-weight:800; font-size:1rem; color:var(--text-primary); font-family:'Nunito',sans-serif; }
-.class-meta        { display:flex; flex-wrap:wrap; gap:8px; }
-.meta-item         { display:flex; align-items:center; gap:4px; font-size:0.78rem; color:var(--text-secondary); }
-.class-card-actions { display:flex; gap:6px; flex-wrap:wrap; padding-top:8px; border-top:1.5px solid var(--border); }
+.class-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.class-name        { font-weight:900; font-size:1.1rem; color:var(--text-primary); font-family:'Nunito',sans-serif; letter-spacing:-0.01em; }
+.class-meta        { display:flex; flex-wrap:wrap; gap:12px; margin-top:2px; }
+.meta-item         { display:flex; align-items:center; gap:5px; font-size:0.8rem; font-weight:600; color:var(--text-secondary); background: var(--bg-tertiary); padding: 4px 10px; border-radius: var(--r-full); }
+.class-card-actions { display:flex; gap:8px; flex-wrap:wrap; padding-top:14px; border-top:1.5px dashed var(--border); margin-top: auto; }
 
 /* ════════════════════════════════════════════════════════════
    BADGES / STATUS

@@ -22,7 +22,6 @@ const showsToday = (chore: Chore): boolean => {
   }
 };
 
-const isNight = () => new Date().getHours() >= 19;
 
 /** Returns game tokens badge display for active child */
 const TokenBadge: React.FC<{ tokens: number }> = ({ tokens }) => (
@@ -42,11 +41,11 @@ const QuestBoard: React.FC = () => {
   const {
     chores, choreCompletions, children,
     activeChildFilter, setActiveChildFilter,
-    resetTodayChores, choreSettings, setScreen,
+    resetTodayChores, choreSettings, setScreen, theme
   } = useAppStore();
 
   const today = todayStr();
-  const night  = isNight();
+  const night  = theme === 'dark';
 
   const [editingChore, setEditingChore] = useState<Chore | null>(null);
   const [showAdd,      setShowAdd]      = useState(false);
@@ -152,45 +151,46 @@ const QuestBoard: React.FC = () => {
           </div>
         )}
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ fontSize: '2rem' }}>⚔️</div>
-            <h1 style={{ fontWeight: 900, fontFamily: 'Nunito, sans-serif', fontSize: '1.6rem', lineHeight: 1, color: night ? '#F3F4F6' : '#92400E', margin: 0 }}>
-              Quest Board
-            </h1>
-          </div>
-          <p style={{ color: night ? 'rgba(243,244,246,0.7)' : '#78350F', fontSize: '0.8rem', fontWeight: 700, marginBottom: 10 }}>
-            {format(new Date(), 'EEEE, MMMM d')} · {night ? 'Evening adventures' : 'Daily quests await!'}
-          </p>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 20 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <div style={{ fontSize: '2.2rem' }}>⚔️</div>
+              <h1 style={{ fontWeight: 900, fontFamily: 'Nunito, sans-serif', fontSize: '1.8rem', lineHeight: 1, color: night ? '#F3F4F6' : '#92400E', margin: 0 }}>
+                Quest Board
+              </h1>
+            </div>
+            <p style={{ color: night ? 'rgba(243,244,246,0.7)' : '#78350F', fontSize: '0.85rem', fontWeight: 700, marginBottom: 16 }}>
+              {format(new Date(), 'EEEE, MMMM d')} · {night ? 'Evening adventures' : 'Daily quests await!'}
+            </p>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {/* Game tokens counter */}
-            {selectedChild && (
-              <TokenBadge tokens={selectedChild.gameTokens ?? 0}/>
-            )}
-            <button
-              className="btn btn-sm"
-              style={{ background: night ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.7)', color: night ? '#fff' : '#92400E', border: 'none', backdropFilter: 'blur(4px)', fontWeight: 800, fontSize: '0.8rem' }}
-              onClick={() => setScreen('games')} id="btn-play-games"
-            >
-              <Trophy size={13}/> Play Games
-            </button>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Game tokens counter */}
+              {selectedChild && (
+                <TokenBadge tokens={selectedChild.gameTokens ?? 0}/>
+              )}
+              <button
+                className="btn btn-sm"
+                style={{ background: night ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)', color: night ? '#fff' : '#92400E', border: 'none', backdropFilter: 'blur(4px)', fontWeight: 800, fontSize: '0.85rem' }}
+                onClick={() => setScreen('games')} id="btn-play-games"
+              >
+                <Trophy size={14}/> Play Games
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* ── Header actions row ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-          {doneToday} completed · {visibleChores.length} remaining
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowReset(true)} id="btn-reset-today">
-            <RotateCcw size={13}/> Reset
-          </button>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)} id="btn-add-chore">
-            <Plus size={14}/> Add Quest
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-sm" style={{ background: night ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)', color: night ? '#fff' : '#92400E', border: 'none' }} onClick={() => setShowReset(true)} id="btn-reset-today">
+                <RotateCcw size={14}/> Reset
+              </button>
+              <button className="btn btn-sm" style={{ background: night ? '#F3F4F6' : '#92400E', color: night ? '#111827' : '#fff', border: 'none', fontWeight: 800 }} onClick={() => setShowAdd(true)} id="btn-add-chore">
+                <Plus size={15}/> Add Quest
+              </button>
+            </div>
+            <div style={{ fontSize: '0.75rem', color: night ? 'rgba(255,255,255,0.6)' : 'rgba(146, 64, 14, 0.7)', fontWeight: 800, marginTop: 4 }}>
+              {doneToday} completed · {visibleChores.length} remaining
+            </div>
+          </div>
         </div>
       </div>
 
@@ -212,7 +212,13 @@ const QuestBoard: React.FC = () => {
 
       {/* ── Points progress bar ── */}
       {selectedChild && (
-        <div className="card" style={{ padding: '12px 16px', marginBottom: 16 }}>
+        <div style={{ 
+          padding: '16px 20px', marginBottom: 20, borderRadius: 'var(--r-xl)',
+          background: night ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(10px)',
+          border: night ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(255,255,255,0.8)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
             <div style={{ width: 34, height: 34, borderRadius: '50%', background: selectedChild.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
               {selectedChild.avatarEmoji}
@@ -257,12 +263,18 @@ const QuestBoard: React.FC = () => {
 
       {/* ── Empty state ── */}
       {pending.length === 0 && done.length === 0 ? (
-        <div className="empty-state card" style={{ padding: 40 }}>
-          <div style={{ fontSize: '3rem', marginBottom: 10 }}>⚔️</div>
-          <div className="empty-title">No quests today!</div>
-          <div className="empty-desc">Add some quests to start tracking {selectedChild?.name ?? 'your hero'}'s adventure!</div>
-          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => setShowAdd(true)} id="btn-add-chore-empty">
-            <Plus size={16}/> Add First Quest
+        <div style={{ 
+          padding: 60, display: 'flex', flexDirection: 'column', alignItems: 'center', 
+          background: night ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.5)',
+          border: night ? '2px dashed rgba(255,255,255,0.1)' : '2px dashed rgba(0,0,0,0.1)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: 24, margin: '20px 0', textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: 12, opacity: 0.9 }}>⚔️</div>
+          <div className="empty-title" style={{ color: night ? '#fff' : 'var(--text-primary)', fontSize: '1.4rem' }}>No quests today!</div>
+          <div className="empty-desc" style={{ color: night ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)' }}>Add some quests to start tracking {selectedChild?.name ?? 'your hero'}'s adventure!</div>
+          <button className="btn btn-primary" style={{ marginTop: 24, padding: '12px 24px', fontSize: '1rem', borderRadius: '999px' }} onClick={() => setShowAdd(true)} id="btn-add-chore-empty">
+            <Plus size={18}/> Add First Quest
           </button>
         </div>
       ) : (

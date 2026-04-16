@@ -132,7 +132,11 @@ const ClassList: React.FC = () => {
           }
         />
       ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap:'10px' }} className="stagger">
+        <div style={{ 
+          display:'grid', 
+          gridTemplateColumns:'repeat(auto-fill, minmax(340px, 1fr))', 
+          gap:'24px' 
+        }} className="stagger">
           {filtered.map((cls) => <ClassCard key={cls.id} cls={cls} />)}
         </div>
       )}

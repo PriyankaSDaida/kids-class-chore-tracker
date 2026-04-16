@@ -7,7 +7,7 @@ export type AttendanceStatus = 'attended' | 'missed' | 'cancelled';
 export type Theme = 'light' | 'dark';
 export type Screen =
   | 'dashboard' | 'calendar' | 'classes' | 'children'
-  | 'costs' | 'profile' | 'settings' | 'chores' | 'games';
+  | 'costs' | 'profile' | 'settings' | 'chores' | 'games' | 'shop';
 export type ReminderBefore = 'none' | '15min' | '30min' | '1hour' | '1day';
 export type ClassReaction = 'cant-wait' | 'not-feeling-it' | null;
 export type Mood = 1 | 2 | 3 | 4 | 5;
@@ -137,6 +137,28 @@ export const DEFAULT_CHORE_SETTINGS: ChoreSettings = {
   soundCorrectAnswer: true,
   soundWrongAnswer: true,
 };
+
+// ─── Gamification (Virtual Shop) ──────────────────────────────────────────────
+export type ShopItemType = 'points' | 'tokens';
+
+export interface ShopItem {
+  id: string;
+  name: string;
+  cost: number;
+  type: ShopItemType;
+  icon: string;
+}
+
+export interface ShopPurchase {
+  id: string;
+  childId: string;
+  itemId: string;
+  cost: number;
+  type: ShopItemType;
+  date: string;
+  isFulfilled: boolean;
+  fulfilledAt: string;
+}
 
 // ─── Child ─────────────────────────────────────────────────────────────────────
 export interface Child {
