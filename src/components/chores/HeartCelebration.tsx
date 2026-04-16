@@ -1,5 +1,5 @@
 // ─── HeartCelebration — Full-Screen Heart Celebration Upgrade ─────────────────
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { useSound } from '../../hooks/useSound';
 
@@ -11,15 +11,8 @@ const HeartCelebration: React.FC<{ childName: string }> = ({ childName }) => {
   const { clearHeartCelebration, choreSettings } = useAppStore();
   const { playChime } = useSound();
 
-  useEffect(() => {
-    if (choreSettings.soundCelebrations) playChime();
-    const t = setTimeout(clearHeartCelebration, 4500);
-    return () => clearTimeout(t);
-  }, []);
-
-  if (!choreSettings.showAnimations) { clearHeartCelebration(); return null; }
-
-  const risingHearts = Array.from({ length: NUM_HEARTS }, (_, i) => ({
+  // Compute particle positions once on mount (stable random values)
+  const [risingHearts] = useState(() => Array.from({ length: NUM_HEARTS }, (_, i) => ({
     id: i,
     left:     `${3 + Math.random() * 94}%`,
     delay:    Math.random() * 1.2,
@@ -28,9 +21,9 @@ const HeartCelebration: React.FC<{ childName: string }> = ({ childName }) => {
     startRot: `${-25 + Math.random() * 50}deg`,
     endRot:   `${-50 + Math.random() * 100}deg`,
     endScale: 0.3 + Math.random() * 0.5,
-  }));
+  })));
 
-  const burstParticles = Array.from({ length: NUM_PARTICLES }, (_, i) => {
+  const [burstParticles] = useState(() => Array.from({ length: NUM_PARTICLES }, (_, i) => {
     const angle = (i / NUM_PARTICLES) * 360;
     const dist  = 80 + Math.random() * 120;
     const rad   = (angle * Math.PI) / 180;
@@ -41,7 +34,17 @@ const HeartCelebration: React.FC<{ childName: string }> = ({ childName }) => {
       delay: 0.3 + Math.random() * 0.4,
       dur: 1.2 + Math.random() * 0.8,
     };
-  });
+  }));
+
+  useEffect(() => {
+    if (choreSettings.soundCelebrations) playChime();
+    const t = setTimeout(clearHeartCelebration, 4500);
+    return () => clearTimeout(t);
+  // choreSettings.soundCelebrations intentionally read once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearHeartCelebration, playChime]);
+
+  if (!choreSettings.showAnimations) { clearHeartCelebration(); return null; }
 
   return (
     <div

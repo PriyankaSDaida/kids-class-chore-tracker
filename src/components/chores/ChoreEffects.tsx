@@ -18,7 +18,7 @@ const ChoreEffects: React.FC = () => {
     // Re-check every 5 minutes while app is open
     const interval = setInterval(checkPendingGift, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [checkPendingGift]);
 
   const heartChild = newHeartChildId ? children.find((c) => c.id === newHeartChildId) : null;
   const starChild  = newStarChildId  ? children.find((c) => c.id === newStarChildId)  : null;

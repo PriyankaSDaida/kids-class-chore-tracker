@@ -200,7 +200,15 @@ export const useAppStore = create<AppState>()(
         if (get()._isSyncing) return;
         set({ _isSyncing: true });
         try {
-          const data = await db.loadAll();
+          const data = await db.loadAll() as {
+            children:    Child[];
+            classes:     ClassSession[];
+            attendance:  AttendanceRecord[];
+            chores:      Chore[];
+            completions: ChoreCompletion[];
+            milestones:  RewardMilestone[];
+            settings:    AppState | null;
+          } | null;
           if (!data) return;
           const s = get();
           set({
@@ -301,7 +309,7 @@ export const useAppStore = create<AppState>()(
             id:crypto.randomUUID(), type:'attended', read:false, createdAt:now,
             title:'Class completed! ✅', message:`${child.name} attended ${cls.name} · +${XP_PER_ATTEND} XP`,
           };
-          const badgeNotifs: AppNotification[] = newBadges.map((_b) => ({
+          const badgeNotifs: AppNotification[] = newBadges.map(() => ({
             id:crypto.randomUUID(), type:'badge' as const, read:false, createdAt:now,
             title:'New badge unlocked! 🏆', message:`${child.name} earned a new badge!`,
           }));
@@ -586,7 +594,9 @@ export const useAppStore = create<AppState>()(
 
       // _hasHydrated and _isSyncing are runtime-only — never write to localStorage
       partialize: (state) => {
-        const { _hasHydrated, _isSyncing, ...rest } = state;
+        // Exclude runtime-only flags from localStorage persistence
+        const { _hasHydrated: _h, _isSyncing: _s, ...rest } = state;
+        void _h; void _s;
         return rest;
       },
 

@@ -113,7 +113,7 @@ const SortingSafari: React.FC<Props> = ({ onBack, childId }) => {
       if (xp > 0) awardXP(childId, xp);
       if (bestScore === null || score > bestScore) setBest(score);
     }
-  }, [phase]);
+  }, [phase, awardXP, bestScore, childId, score]);
 
   const handleSort = useCallback((item: FallingItem, bin: BinType) => {
     if (item.sorted || item.wrong) return;

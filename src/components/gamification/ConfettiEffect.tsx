@@ -1,6 +1,6 @@
 // ─── Canvas Confetti Explosion ─────────────────────────────────────────────────
 // Full-screen canvas particle system — fires when a class is marked complete
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useLayoutEffect } from 'react';
 
 interface ConfettiEffectProps {
   onComplete?: () => void;
@@ -27,6 +27,9 @@ interface Particle {
 
 const ConfettiEffect: React.FC<ConfettiEffectProps> = ({ onComplete }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Keep latest onComplete in a ref so the animation loop always calls the current version
+  const onCompleteRef = useRef(onComplete);
+  useLayoutEffect(() => { onCompleteRef.current = onComplete; });
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -96,7 +99,7 @@ const ConfettiEffect: React.FC<ConfettiEffectProps> = ({ onComplete }) => {
       if (anyAlive) {
         frame = requestAnimationFrame(animate);
       } else {
-        onComplete?.();
+        onCompleteRef.current?.();
       }
     };
 

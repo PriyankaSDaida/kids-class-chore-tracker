@@ -1,5 +1,5 @@
 // ─── PinPad — 4-Digit Parent PIN Entry ────────────────────────────────────────
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface PinPadProps {
   onConfirm:    (pin: string) => void;
@@ -16,21 +16,23 @@ const PinPad: React.FC<PinPadProps> = ({ onConfirm, onCancel, expectedPin, label
   const [error,  setError]  = useState('');
   const [shake,  setShake]  = useState(false);
 
-  const handleDigit = (d: string) => {
-    if (digits.length >= 4) return;
-    const next = [...digits, d];
-    setDigits(next);
-    if (next.length === 4) {
-      const pin = next.join('');
-      if (expectedPin && pin !== expectedPin) {
-        setError('Incorrect PIN. Try again.');
-        setShake(true);
-        setTimeout(() => { setDigits([]); setShake(false); }, 700);
-      } else {
-        setTimeout(() => onConfirm(pin), 100);
+  const handleDigit = useCallback((d: string) => {
+    setDigits((prev) => {
+      if (prev.length >= 4) return prev;
+      const next = [...prev, d];
+      if (next.length === 4) {
+        const pin = next.join('');
+        if (expectedPin && pin !== expectedPin) {
+          setError('Incorrect PIN. Try again.');
+          setShake(true);
+          setTimeout(() => { setDigits([]); setShake(false); }, 700);
+        } else {
+          setTimeout(() => onConfirm(pin), 100);
+        }
       }
-    }
-  };
+      return next;
+    });
+  }, [expectedPin, onConfirm]);
 
   const handleBack = () => { setDigits((d) => d.slice(0, -1)); setError(''); };
 
@@ -42,7 +44,7 @@ const PinPad: React.FC<PinPadProps> = ({ onConfirm, onCancel, expectedPin, label
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [digits]);
+  }, [handleDigit]);
 
   return (
     <div className="pin-pad">

@@ -47,11 +47,18 @@ const MemoryMatch: React.FC<Props> = ({ onBack, childId }) => {
   const [flippedIds, setFlipped] = useState<number[]>([]);
   const [moves,      setMoves]   = useState(0);
   const [elapsed,    setElapsed] = useState(0);
-  const [done,       setDone]    = useState(false);
   const [bestTime,   setBest]    = useState<number | null>(null);
   const [showHint,   setShowHint]= useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  const lockRef  = useRef<boolean>(false);
+  const timerRef     = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const lockRef      = useRef<boolean>(false);
+  const completedRef = useRef<boolean>(false);
+
+  // Derive completion state — no separate `done` state needed
+  const isDone = cards.length > 0 && cards.every((c) => c.matched);
+
+  // Keep elapsed in a ref so handleFlip doesn't need it as a dep (avoids recreating every second)
+  const elapsedRef = useRef(elapsed);
+  useEffect(() => { elapsedRef.current = elapsed; });
 
   useEffect(() => {
     timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -75,9 +82,17 @@ const MemoryMatch: React.FC<Props> = ({ onBack, childId }) => {
 
       setTimeout(() => {
         if (match) {
-          setCards((prev) => prev.map((c) =>
+          const updatedCards = cards.map((c) =>
             c.id === idA || c.id === idB ? { ...c, matched: true } : c,
-          ));
+          );
+          setCards(updatedCards);
+          // Check for game completion — runs in a timeout callback, outside of any effect
+          if (!completedRef.current && updatedCards.every((c) => c.matched)) {
+            completedRef.current = true;
+            clearInterval(timerRef.current);
+            awardXP(childId, 10);
+            setBest((prev) => (prev === null || elapsedRef.current < prev) ? elapsedRef.current : prev);
+          }
         } else {
           setCards((prev) => prev.map((c) =>
             c.id === idA || c.id === idB ? { ...c, flipped: false } : c,
@@ -89,17 +104,8 @@ const MemoryMatch: React.FC<Props> = ({ onBack, childId }) => {
     } else {
       setTimeout(() => { lockRef.current = false; }, 100);
     }
-  }, [cards, flippedIds]);
+  }, [cards, flippedIds, awardXP, childId]);
 
-  // Check for completion
-  useEffect(() => {
-    if (cards.length > 0 && cards.every((c) => c.matched)) {
-      clearInterval(timerRef.current);
-      setDone(true);
-      awardXP(childId, 10);
-      if (bestTime === null || elapsed < bestTime) setBest(elapsed);
-    }
-  }, [cards, elapsed, bestTime, childId, awardXP]);
 
   const handleHint = () => {
     if (tokens < 1 || showHint) return;
@@ -122,7 +128,8 @@ const MemoryMatch: React.FC<Props> = ({ onBack, childId }) => {
 
   const restart = () => {
     setCards(buildDeck(age));
-    setFlipped([]); setMoves(0); setElapsed(0); setDone(false);
+    setFlipped([]); setMoves(0); setElapsed(0);
+    completedRef.current = false;
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
   };
@@ -202,7 +209,7 @@ const MemoryMatch: React.FC<Props> = ({ onBack, childId }) => {
       </div>
 
       {/* Completion overlay */}
-      {done && (
+      {isDone && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',

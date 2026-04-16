@@ -67,7 +67,7 @@ const WordBuilder: React.FC<Props> = ({ onBack, childId }) => {
     setTimeLeft(18 + w.length * 2);
   }, []);
 
-  useEffect(() => { spawnLetters(word); }, [word]);
+  useEffect(() => { spawnLetters(word); }, [word, spawnLetters]);
 
   // Countdown timer
   useEffect(() => {

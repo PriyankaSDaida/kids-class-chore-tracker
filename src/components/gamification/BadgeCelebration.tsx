@@ -11,7 +11,7 @@ const BadgeCelebration: React.FC = () => {
 
   useEffect(() => {
     if (newlyEarnedBadge) playFanfare();
-  }, [newlyEarnedBadge]);
+  }, [newlyEarnedBadge, playFanfare]);
 
   if (!newlyEarnedBadge) return null;
   const badge = BADGE_DEFS[newlyEarnedBadge];

@@ -1,7 +1,6 @@
 // ─── Live Countdown Timer ─────────────────────────────────────────────────────
 // Returns a formatted string like "Starts in 2h 30m" updated every minute
-import { useState, useEffect } from 'react';
-import { todayStr } from '../utils/dateUtils';
+import { useState, useEffect, useMemo } from 'react';
 
 interface CountdownResult {
   label: string;
@@ -10,13 +9,23 @@ interface CountdownResult {
   isStarted: boolean;
 }
 
+// nowMs is kept in state, updated by setInterval — never called during render
 export const useCountdown = (date: string, time: string): CountdownResult => {
-  const compute = (): CountdownResult => {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(interval);
+  }, [date, time]);
+
+  return useMemo((): CountdownResult => {
+    // Derive today's date string from nowMs (pure given nowMs)
+    const today = new Date(nowMs).toISOString().slice(0, 10);
     const [h, m] = time.split(':').map(Number);
     const target = new Date(`${date}T00:00:00`);
     target.setHours(h, m, 0, 0);
-    const diff = target.getTime() - Date.now();
-    const isToday = date === todayStr();
+    const diff = target.getTime() - nowMs;
+    const isToday = date === today;
 
     if (diff <= 0) return { label: 'Started ✅', isToday, isUrgent: false, isStarted: true };
 
@@ -24,22 +33,13 @@ export const useCountdown = (date: string, time: string): CountdownResult => {
     const hours = Math.floor(totalMins / 60);
     const mins  = totalMins % 60;
 
-    let label = '';
     if (!isToday) return { label: '', isToday: false, isUrgent: false, isStarted: false };
-    if (hours > 0)    label = `Starts in ${hours}h ${mins}m`;
+
+    let label = '';
+    if (hours > 0)     label = `Starts in ${hours}h ${mins}m`;
     else if (mins > 0) label = `Starts in ${mins}m`;
-    else label = 'Starting soon! 🎉';
+    else               label = 'Starting soon! 🎉';
 
     return { label, isToday, isUrgent: totalMins < 30, isStarted: false };
-  };
-
-  const [result, setResult] = useState<CountdownResult>(compute);
-
-  useEffect(() => {
-    setResult(compute());
-    const interval = setInterval(() => setResult(compute()), 60_000);
-    return () => clearInterval(interval);
-  }, [date, time]);
-
-  return result;
+  }, [date, time, nowMs]);
 };

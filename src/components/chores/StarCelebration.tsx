@@ -1,5 +1,5 @@
 // ─── StarCelebration — Shooting Star + Golden Confetti Upgrade ────────────────
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { useSound } from '../../hooks/useSound';
 
@@ -13,15 +13,8 @@ const StarCelebration: React.FC<{ childName: string }> = ({ childName }) => {
   const { clearStarCelebration, choreSettings } = useAppStore();
   const { playFanfare } = useSound();
 
-  useEffect(() => {
-    if (choreSettings.soundCelebrations) playFanfare();
-    const t = setTimeout(clearStarCelebration, 5500);
-    return () => clearTimeout(t);
-  }, []);
-
-  if (!choreSettings.showAnimations) { clearStarCelebration(); return null; }
-
-  const burstStars = Array.from({ length: NUM_STARS }, (_, i) => {
+  // Compute particle positions once on mount (stable random values)
+  const [burstStars] = useState(() => Array.from({ length: NUM_STARS }, (_, i) => {
     const angle = (i / NUM_STARS) * 360;
     const dist  = 130 + Math.random() * 200;
     const rad   = (angle * Math.PI) / 180;
@@ -33,9 +26,9 @@ const StarCelebration: React.FC<{ childName: string }> = ({ childName }) => {
       dur: 1.5 + Math.random() * 1.1,
       size: 1.2 + Math.random() * 1.6,
     };
-  });
+  }));
 
-  const confetti = Array.from({ length: NUM_CONFETTI }, (_, i) => ({
+  const [confetti] = useState(() => Array.from({ length: NUM_CONFETTI }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
     color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
@@ -43,7 +36,17 @@ const StarCelebration: React.FC<{ childName: string }> = ({ childName }) => {
     dur: 2.8 + Math.random() * 1.8,
     size: `${0.5 + Math.random() * 0.8}rem`,
     shape: i % 3 === 0 ? '50%' : i % 3 === 1 ? '4px' : '0',  // circle / rect / diamond
-  }));
+  })));
+
+  useEffect(() => {
+    if (choreSettings.soundCelebrations) playFanfare();
+    const t = setTimeout(clearStarCelebration, 5500);
+    return () => clearTimeout(t);
+  // choreSettings.soundCelebrations intentionally read once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearStarCelebration, playFanfare]);
+
+  if (!choreSettings.showAnimations) { clearStarCelebration(); return null; }
 
   return (
     <div

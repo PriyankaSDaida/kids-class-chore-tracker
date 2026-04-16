@@ -22,19 +22,22 @@ const GiftMilestoneModal: React.FC<{ childId: string }> = ({ childId }) => {
   const { children, choreSettings, claimGift, snoozeGift } = useAppStore();
   const { playFanfare } = useSound();
 
-  const child = children.find((c) => c.id === childId);
-  if (!child) return null;
-
   const [step,     setStep]     = useState<Step>('main');
   const [giftNote, setGiftNote] = useState('');
   const [lidGone,  setLidGone]  = useState(false);
 
+  const child = children.find((c) => c.id === childId);
+
   useEffect(() => {
+    if (!child) return;
     if (choreSettings.soundCelebrations) playFanfare();
     // Pop the lid after 1.2s
     const t = setTimeout(() => setLidGone(true), 1200);
     return () => clearTimeout(t);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childId]);
+
+  if (!child) return null;
 
   const handleClaim = () => {
     if (choreSettings.parentPin) setStep('pin');

@@ -1,5 +1,6 @@
 // ─── Web Audio Synthesized Sounds ─────────────────────────────────────────────
 // No audio files needed — all sounds are generated via the Web Audio API
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 
 let audioCtx: AudioContext | null = null;
@@ -39,18 +40,24 @@ const playSequence = (
 export const useSound = () => {
   const { soundEnabled } = useAppStore();
 
-  const guard = (fn: () => void) => { if (soundEnabled) { try { fn(); } catch {} } };
+  // Keep latest soundEnabled in a ref so stable callbacks always read current value
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; });
+
+  const guard = useCallback((fn: () => void) => {
+    if (soundEnabledRef.current) { try { fn(); } catch { /* ignore Web Audio API errors */ } }
+  }, []);
 
   return {
     /** Ascending C-E-G chime — played when marking a class complete */
-    playChime:    () => guard(() => playSequence([523, 659, 784], [0.18, 0.18, 0.38])),
+    playChime:   useCallback(() => guard(() => playSequence([523, 659, 784], [0.18, 0.18, 0.38])), [guard]),
     /** Short fanfare arpeggio — played when a badge is earned */
-    playFanfare:  () => guard(() => playSequence([587, 784, 988, 1175], [0.1, 0.1, 0.1, 0.45], 'triangle', 0.2)),
+    playFanfare: useCallback(() => guard(() => playSequence([587, 784, 988, 1175], [0.1, 0.1, 0.1, 0.45], 'triangle', 0.2)), [guard]),
     /** Soft click — played on navigation tap */
-    playTick:     () => guard(() => playSequence([900], [0.04], 'sine', 0.15)),
+    playTick:    useCallback(() => guard(() => playSequence([900], [0.04], 'sine', 0.15)), [guard]),
     /** Rising arpeggio — played on streak milestone */
-    playStreak:   () => guard(() => playSequence([440, 554, 659, 880], [0.1, 0.1, 0.1, 0.3], 'sine', 0.2)),
+    playStreak:  useCallback(() => guard(() => playSequence([440, 554, 659, 880], [0.1, 0.1, 0.1, 0.3], 'sine', 0.2)), [guard]),
     /** Level-up fanfare */
-    playLevelUp:  () => guard(() => playSequence([523, 659, 784, 1047], [0.12, 0.12, 0.12, 0.5], 'triangle', 0.25)),
+    playLevelUp: useCallback(() => guard(() => playSequence([523, 659, 784, 1047], [0.12, 0.12, 0.12, 0.5], 'triangle', 0.25)), [guard]),
   };
 };

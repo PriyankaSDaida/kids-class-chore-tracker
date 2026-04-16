@@ -34,7 +34,7 @@ function App() {
     if (_hasHydrated) {
       loadFromDB();
     }
-  }, [_hasHydrated]);
+  }, [_hasHydrated, loadFromDB]);
 
   // Show a minimal loading state while localStorage is being read.
   // This prevents a flash of empty state that could overwrite good data.
