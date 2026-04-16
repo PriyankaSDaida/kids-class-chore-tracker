@@ -113,6 +113,7 @@ export interface RewardMilestone {
 }
 
 export interface ChoreSettings {
+  kidMode:boolean;             // Big button kid-friendly layout
   kidsCanMarkChores:boolean;   // false = PIN required
   parentPin:string;            // 4 digits or '' = no PIN
   pointsPerHeart:number;       // default 25
@@ -126,6 +127,7 @@ export interface ChoreSettings {
 }
 
 export const DEFAULT_CHORE_SETTINGS: ChoreSettings = {
+  kidMode: true,
   kidsCanMarkChores: true,
   parentPin: '',
   pointsPerHeart: 25,

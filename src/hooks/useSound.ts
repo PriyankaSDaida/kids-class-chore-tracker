@@ -13,6 +13,12 @@ const getCtx = (): AudioContext => {
 
 type WaveType = 'sine' | 'square' | 'sawtooth' | 'triangle';
 
+const pulseHaptic = (ms: number) => {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    try { navigator.vibrate(ms); } catch { /* ignore */ }
+  }
+};
+
 /** Play a sequence of notes */
 const playSequence = (
   freqs: number[],
@@ -34,6 +40,24 @@ const playSequence = (
     gain.gain.exponentialRampToValueAtTime(0.0001, start + durations[i]);
     osc.start(start);
     osc.stop(start + durations[i] + 0.05);
+  });
+};
+
+/** Play multiple notes simultaneously */
+const playChord = (freqs: number[], duration: number, wave: WaveType = 'sine', volume = 0.2) => {
+  const ctx = getCtx();
+  const start = ctx.currentTime;
+  freqs.forEach((freq) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = wave;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume, start);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    osc.start(start);
+    osc.stop(start + duration + 0.05);
   });
 };
 
@@ -59,5 +83,34 @@ export const useSound = () => {
     playStreak:  useCallback(() => guard(() => playSequence([440, 554, 659, 880], [0.1, 0.1, 0.1, 0.3], 'sine', 0.2)), [guard]),
     /** Level-up fanfare */
     playLevelUp: useCallback(() => guard(() => playSequence([523, 659, 784, 1047], [0.12, 0.12, 0.12, 0.5], 'triangle', 0.25)), [guard]),
+
+    // Category Specific Sounds + Haptics
+    playCategorySound: useCallback((category: string) => {
+      pulseHaptic(80);
+      guard(() => {
+        // Categories: Helping, Hygiene, Homework, Behaviour, Kindness, Responsibility
+        switch(category) {
+          case 'Helping':
+            playChord([440, 554, 659], 0.6, 'sine', 0.2); // Warm A-major chord
+            break;
+          case 'Hygiene':
+            playSequence([400, 500, 600, 800], [0.08, 0.08, 0.08, 0.3], 'sine', 0.15); // Bubbly ascending
+            break;
+          case 'Homework':
+            playSequence([880, 880], [0.15, 0.3], 'triangle', 0.15); // School bell
+            break;
+          case 'Behaviour':
+            playSequence([300, 450], [0.2, 0.4], 'sine', 0.2); // Soft encouraging tone
+            break;
+          case 'Kindness':
+            playChord([523, 659, 784, 1046], 0.7, 'sine', 0.15); // Warm C-major 7 chord
+            break;
+          case 'Responsibility':
+          default:
+            playSequence([392, 523, 659, 784], [0.1, 0.1, 0.1, 0.4], 'triangle', 0.2); // Triumphant fanfare
+            break;
+        }
+      });
+    }, [guard]),
   };
 };
