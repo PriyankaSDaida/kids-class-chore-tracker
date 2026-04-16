@@ -24,7 +24,7 @@ Class Quest is a **desktop-first, fully responsive** web app for parents and kid
 
 Leo the Lion 🦁 is your mascot, cheering kids on every step of the way.
 
-> 💡 **Everything runs in your browser.** No account needed, no server, no data sent anywhere — 100% local storage.
+> 💡 **Supabase Backend Synced.** Includes secure authentication, live data syncing across devices with Supabase, and offline PWA support!
 
 ---
 
@@ -64,8 +64,10 @@ Leo the Lion 🦁 is your mascot, cheering kids on every step of the way.
 - **Done Today** section — completed quests move to a greyed row at the bottom
 - **Game token counter** — every 5 quests completed = 1 🎮 token for the Games section
 - **Recurring chores** — daily, weekdays only, weekly, or one-time with auto-reset
-- **Parent PIN gate** — optional 4-digit PIN confirmation before marking quests done
-- **Reset Today** button for parents
+- **Kid Mode** — Giant, single-tap buttons, enormous category emojis, and simplified big-pill layout tailored for young children aged 4-12. Toggleable in settings!
+- **Interactive Celebrations** — Web Audio API integrated sounds (chimes, bell rings) based on chore category plus CSS confetti explosions upon completion.
+- **My Quests vs Family Tabs** — View quests assigned to the active child or a multi-column side-by-side view of all children (desktop only).
+- **Parent Mode Overlay** — PIN-protected lock overlay hiding all edit/delete buttons from kids and leaving only the satisfying completion button!
 
 ### 🏆 Reward Chain
 ```
@@ -78,9 +80,14 @@ Chore Done → Points → ❤️ Hearts → ⭐ Stars → 🎁 Gift Milestone
 | ⭐ Star | Every 5 hearts | SVG starburst ring + golden confetti + mascot dance |
 | 🎁 Gift | Every 5 stars | Undismissable popup — balloon float, gift lid-pop, parent PIN + gift note |
 
+| 🎁 Gift | Every 5 stars | Undismissable popup — balloon float, gift lid-pop, parent PIN + gift note |
+
 - Hearts and stars are **permanent** — negative chores never take them away
 - Gift popup has a **"Remind me later"** snooze (re-appears after 1 hour)
 - All thresholds are **customisable** in Settings
+
+### 🛍️ Virtual Reward Shop
+Parents can configure real-world rewards (e.g. "Pizza Night", "$5 Robux", "1hr iPad time") priced in tokens, hearts, or points. Kids can browse their allowance shop and "purchase" these rewards securely, which immediately alerts parents via the dashboard.
 
 ### 🎮 Mini-Games
 Kids spend 🎮 game tokens (earned from quests) to unlock games:
@@ -210,11 +217,10 @@ The app is organised into four clear layers flowing top-down. The UI dispatches 
                              │  JSON serialise / deserialise
 ┌────────────────────────────▼─────────────────────────────────────────┐
 │                       PERSISTENCE LAYER                              │
-│              100% local — nothing leaves the browser                 │
+│              Supabase Cloud Sync + Local Fallback                    │
 │                                                                      │
-│  localStorage key: "kids-class-tracker-store"                        │
-│  Schema migration: versions 1 → 5 handled in migrate()               │
-│  Export: html2canvas + jsPDF (client-side PDF/image generation)      │
+│  Zustand persist local caching ("kids-class-tracker-store")          │
+│  Real-time write-through caching to Supabase remote DB               │
 └────────────────────────────┬─────────────────────────────────────────┘
                              │
 ┌────────────────────────────▼─────────────────────────────────────────┐
@@ -360,7 +366,7 @@ kids-class-chore-tracker/
 | **Framework** | React 19 | Concurrent features |
 | **Language** | TypeScript 6 | `strict: false` for Vercel build compat |
 | **Build tool** | Vite 5 | Sub-second HMR |
-| **State** | Zustand 5 + persist | Single store, localStorage, v1→v5 migration |
+| **State** | Zustand 5 + persist | Supabase Auth + Postgres realtime syncing |
 | **Styling** | Vanilla CSS | CSS variables, no Tailwind, `data-theme` dark mode |
 | **Icons** | Lucide React 1.8 | Tree-shakeable SVG icons |
 | **Dates** | date-fns 4 | Lightweight, tree-shakeable |
@@ -399,9 +405,11 @@ All controls in **Settings → Chore Controls**:
 
 ## 🗺️ Roadmap
 
-- [ ] Cloud sync and multi-device support
+- [x] Cloud sync and multi-device support
+- [x] PWA with push notifications
+- [x] Virtual Allowance Shop
+- [x] Kid Mode simplifies Quest Board
 - [ ] Separate parent and child login modes
-- [ ] PWA with push notifications
 - [ ] More mini-games (spelling, science trivia)
 - [ ] Printable weekly schedule PDF
 - [ ] Teacher / instructor messaging
